@@ -19,7 +19,16 @@ ACCOUNT_NAME = "Wo..."
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# ጊዜያዊ የትዕዛዝ መያዣ
+# የቆይታ ጊዜ እና የሚጨመረው ዋጋ
+DURATION_OPTIONS = {
+    "24h": {"label": "24 ሰዓት (1 ቀን)", "extra": 0},
+    "48h": {"label": "48 ሰዓት (2 ቀናት)", "extra": 300},
+    "1w":  {"label": "1 ሳምንት (7 ቀናት)", "extra": 600},
+    "2w":  {"label": "2 ሳምንታት (14 ቀናት)", "extra": 900},
+    "1m":  {"label": "1 ወር (30 ቀናት)", "extra": 1200},
+    "2m":  {"label": "2 ወራት (60 ቀናት)", "extra": 1500}
+}
+
 user_orders = {}
 
 def get_db_connection():
@@ -59,11 +68,20 @@ def home():
 # /start ትዕዛዝ
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    args = message.text.split()
+    if len(args) > 1 and args[1].startswith("buy_"):
+        try:
+            channel_id = int(args[1].split("_")[1])
+            prompt_duration_selection(message.chat.id, channel_id)
+            return
+        except Exception:
+            pass
+
     text = (
         "እንኳን ደህና መጡ! 📢\n\n"
         "• ቻናልዎን ለማስመዝገብ፦ /register\n"
         "• ማስታወቂያ ለማዘዝ፦ /buy_ad\n"
-        "• ሙሉ የቻናሎች ዝርዝር በዌብሳይት ለመመልከት ከታች ያለውን ቁልፍ ይጠቀሙ።"
+        "• ሙሉ ዝርዝር በዌብሳይት ለመመልከት ከታች ያለውን ቁልፍ ይጠቀሙ።"
     )
     bot.reply_to(message, text)
 
@@ -80,7 +98,7 @@ def process_channel_name(message):
 
 def process_channel_link(message, channel_name):
     channel_link = message.text
-    msg = bot.reply_to(message, "የሚፈልጉትን የ24 ሰዓት የማስታወቂያ ዋጋ በብር ብቻ ያስገቡ (ለምሳሌ፦ 1300):")
+    msg = bot.reply_to(message, "የሚፈልጉትን የመነሻ (የ24 ሰዓት) ዋጋ በብር ብቻ ያስገቡ (ለምሳሌ፦ 1000):")
     bot.register_next_step_handler(msg, process_price, channel_name, channel_link)
 
 def process_price(message, channel_name, channel_link):
@@ -100,14 +118,14 @@ def process_price(message, channel_name, channel_link):
         success_text = (
             f"✅ ቻናልዎ በተሳካ ሁኔታ ተመዝግቧል!\n\n"
             f"📢 ቻናል፦ {channel_name}\n"
-            f"💰 የሚቀርብበት ዋጋ፦ {final_price} ብር / 24 ሰዓት\n\n"
+            f"💰 የመነሻ ዋጋ (24 ሰዓት)፦ {final_price} ብር\n\n"
             f"ማስታወቂያ ሲታዘዝ በቦቱ በኩል መልእክት ይደርስዎታል!"
         )
         bot.reply_to(message, success_text)
     except ValueError:
         bot.reply_to(message, "❌ ዋጋውን በቁጥር ብቻ ያስገቡ። እንደገና /register ብለው ይሞክሩ።")
 
-# ----------------- ማስታወቂያ ማዘዝ እና ክፍያ -----------------
+# ----------------- ማስታወቂያ ማዘዝ -----------------
 @bot.message_handler(commands=['buy_ad'])
 def buy_ad_start(message):
     conn = get_db_connection()
@@ -120,34 +138,65 @@ def buy_ad_start(message):
 
     markup = InlineKeyboardMarkup()
     for ch in channels:
-        btn = InlineKeyboardButton(f"{ch['channel_name']} - {ch['final_price']} ብር", callback_data=f"buy_{ch['id']}")
+        btn = InlineKeyboardButton(f"{ch['channel_name']} (ከ {ch['final_price']} ብር ጀምሮ)", callback_data=f"selch_{ch['id']}")
         markup.add(btn)
 
     bot.reply_to(message, "ማስታወቂያ ማስተላለፍ የሚፈልጉበትን ቻናል ይምረጡ፦", reply_markup=markup)
 
-@bot.callback_query_handler(func=lambda call: call.data.startswith('buy_'))
-def handle_ad_selection(call):
+@bot.callback_query_handler(func=lambda call: call.data.startswith('selch_'))
+def handle_channel_select(call):
     channel_id = int(call.data.split('_')[1])
+    prompt_duration_selection(call.message.chat.id, channel_id)
+    bot.answer_callback_query(call.id)
+
+def prompt_duration_selection(chat_id, channel_id):
     conn = get_db_connection()
     ch = conn.execute('SELECT * FROM channels WHERE id = ?', (channel_id,)).fetchone()
     conn.close()
 
     if not ch:
-        bot.answer_callback_query(call.id, "ቻናሉ አልተገኘም!")
+        bot.send_message(chat_id, "ቻናሉ አልተገኘም!")
         return
+
+    markup = InlineKeyboardMarkup()
+    for key, val in DURATION_OPTIONS.items():
+        total_p = ch['final_price'] + val['extra']
+        btn = InlineKeyboardButton(f"{val['label']} — {total_p} ብር", callback_data=f"dur_{ch['id']}_{key}")
+        markup.add(btn)
+
+    bot.send_message(chat_id, f"📢 ለቻናል፦ *{ch['channel_name']}*\nየማስታወቂያውን የቆይታ ጊዜ ይምረጡ፦", reply_markup=markup, parse_mode="Markdown")
+
+@bot.callback_query_handler(func=lambda call: call.data.startswith('dur_'))
+def handle_duration_select(call):
+    _, ch_id, dur_key = call.data.split('_')
+    ch_id = int(ch_id)
+
+    conn = get_db_connection()
+    ch = conn.execute('SELECT * FROM channels WHERE id = ?', (ch_id,)).fetchone()
+    conn.close()
+
+    if not ch:
+        bot.answer_callback_query(call.id, "ስህተት ተፈጥሯል!")
+        return
+
+    duration_info = DURATION_OPTIONS[dur_key]
+    final_amount = ch['final_price'] + duration_info['extra']
+    owner_amount = ch['base_price'] + duration_info['extra']
 
     user_orders[call.message.chat.id] = {
         'channel_id': ch['id'],
         'channel_name': ch['channel_name'],
         'channel_owner_id': ch['user_id'],
-        'final_price': ch['final_price'],
-        'base_price': ch['base_price']
+        'duration': duration_info['label'],
+        'final_price': final_amount,
+        'owner_price': owner_amount
     }
 
     msg_text = (
         f"💳 *የክፍያ መመሪያ*\n\n"
-        f"📢 *የተመረጠው ቻናል፦* {ch['channel_name']}\n"
-        f"💰 *የሚከፈለው ጠቅላላ ዋጋ፦* {ch['final_price']} ብር\n\n"
+        f"📢 *ቻናል፦* {ch['channel_name']}\n"
+        f"⏳ *የቆይታ ጊዜ፦* {duration_info['label']}\n"
+        f"💰 *ጠቅላላ ክፍያ፦* {final_amount} ብር\n\n"
         f"የክፍያ አማራጮች፦\n"
         f"📱 *Telebirr፦* `{TELEBIRR_NUM}`\n"
         f"🏦 *የኢትዮጵያ ንግድ ባንክ (CBE)፦* `{CBE_ACCOUNT}`\n"
@@ -156,37 +205,38 @@ def handle_ad_selection(call):
         f"⚠️ *ማሳሰቢያ፦* ክፍያውን ከፈጸሙ በኋላ የደረሰኙን ስክሪንሾት (Screenshot/ፎቶ) ለዚህ ቦት ይላኩ።"
     )
     bot.send_message(call.message.chat.id, msg_text, parse_mode="Markdown")
+    bot.answer_callback_query(call.id)
 
-# ደረሰኝ (ፎቶ) ሲላክ
+# ደረሰኝ ሲላክ
 @bot.message_handler(content_types=['photo'])
 def handle_receipt(message):
     user_id = message.chat.id
     if user_id not in user_orders:
-        bot.reply_to(message, "እባክዎ መጀመሪያ /buy_ad ብለው ማስታወቂያ የሚያዙበትን ቻናል ይምረጡ።")
+        bot.reply_to(message, "እባክዎ መጀመሪያ /buy_ad ብለው ማስታወቂያ የሚያዙበትን ቻናል እና ጊዜ ይምረጡ።")
         return
 
     order = user_orders[user_id]
     photo_id = message.photo[-1].file_id
 
-    # ለአድሚኑ (ለእርስዎ) የሚላክ ማረጋገጫ
     admin_markup = InlineKeyboardMarkup()
     approve_btn = InlineKeyboardButton("✅ አጽድቅ (Approve)", callback_data=f"app_{user_id}")
     reject_btn = InlineKeyboardButton("❌ ሰርዝ (Reject)", callback_data=f"rej_{user_id}")
     admin_markup.add(approve_btn, reject_btn)
 
     admin_caption = (
-        f"📩 *አዲስ የክፍያ ደረሰኝ ደርሷል!*\n\n"
+        f"📩 *አዲስ የክፍያ ደረሰኝ!*\n\n"
         f"👤 *የከፋይ ID፦* `{user_id}`\n"
         f"📢 *ቻናል፦* {order['channel_name']}\n"
+        f"⏳ *ቆይታ፦* {order['duration']}\n"
         f"💰 *ጠቅላላ የተከፈለው፦* {order['final_price']} ብር\n"
-        f"💵 *ለእርስዎ የሚቀረው ኮሚሽን፦* 200 ብር\n"
-        f"📲 *ለቻናሉ ባለቤት የሚተላለፈው፦* {order['base_price']} ብር"
+        f"💵 *ለእርስዎ ኮሚሽን፦* 200 ብር\n"
+        f"📲 *ለቻናሉ ባለቤት የሚተላለፍ፦* {order['owner_price']} ብር"
     )
 
     bot.send_photo(ADMIN_ID, photo_id, caption=admin_caption, reply_markup=admin_markup, parse_mode="Markdown")
     bot.reply_to(message, "✅ ደረሰኝዎ ደርሶናል! ክፍያው በአድሚን ተረጋግጦ በቅርቡ ይጸድቃል።")
 
-# አድሚን ማጽደቅ ወይም መሰረዝ ሲጫን
+# አድሚን ሲያጸድቅ ወይም ሲሰርዝ
 @bot.callback_query_handler(func=lambda call: call.data.startswith(('app_', 'rej_')))
 def handle_admin_action(call):
     if call.from_user.id != ADMIN_ID:
@@ -195,13 +245,15 @@ def handle_admin_action(call):
 
     action, customer_id = call.data.split('_')
     customer_id = int(customer_id)
-
     order = user_orders.get(customer_id)
 
     if action == "app":
         bot.send_message(customer_id, "🎉 ክፍያዎ ተረጋግጦ ጸድቋል! እባክዎ እንዲለጠፍ የሚፈልጉትን የማስታወቂያ ጽሑፍ/ፎቶ እዚህ ይላኩ።")
         if order:
-            bot.send_message(order['channel_owner_id'], f"📢 ማስታወቂያ ተገዝቷል!\nቻናልዎ፦ {order['channel_name']}\nየእርስዎ ክፍያ ({order['base_price']} ብር) ማስታወቂያው እንደተለጠፈ የሚተላለፍ ይሆናል።")
+            bot.send_message(
+                order['channel_owner_id'],
+                f"📢 ማስታወቂያ ተገዝቷል!\nቻናል፦ {order['channel_name']}\nቆይታ፦ {order['duration']}\nክፍያዎ፦ {order['owner_price']} ብር"
+            )
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🟢 [ክፍያው ጸድቋል]")
     else:
         bot.send_message(customer_id, "❌ ክፍያዎ አልተረጋገጠም ወይም ውድቅ ተደርጓል። እባክዎ ትክክለኛውን ደረሰኝ በድጋሚ ይላኩ።")
