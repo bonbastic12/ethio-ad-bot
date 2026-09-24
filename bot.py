@@ -1,13 +1,21 @@
 import os
 import sqlite3
+import threading
+from flask import Flask
 import telebot
-from telebot import types
 
-# የቦት ቶከን (ከ @BotFather ያገኙትን እዚህ ያስገቡ)
-BOT_TOKEN = os.getenv("BOT_TOKEN", "የእርስዎ_BOT_TOKEN_እዚህ_ይግባ")
+# Render ፖርት እንዲያገኝ ትንሽዬ Web Server
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Ethio Ad Bot is Running Live!"
+
+# የቦት ቶከን
+BOT_TOKEN = os.getenv("BOT_TOKEN")
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# የዳታቤዝ ዝግጅት (ቻናሎችን ለማስቀመጥ)
+# የዳታቤዝ ዝግጅት
 def init_db():
     conn = sqlite3.connect('ads.db')
     cursor = conn.cursor()
@@ -26,7 +34,7 @@ def init_db():
 
 init_db()
 
-# /start ሲባል የሚላክ
+# /start ትዕዛዝ
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     text = (
@@ -36,7 +44,7 @@ def send_welcome(message):
     )
     bot.reply_to(message, text)
 
-# ቻናል ምዝገባ ማስጀመሪያ
+# ቻናል ምዝገባ
 @bot.message_handler(commands=['register'])
 def start_register(message):
     msg = bot.reply_to(message, "እባክዎ የቻናልዎን ስም ያስገቡ (ለምሳሌ፦ MR ODDS):")
@@ -78,5 +86,12 @@ def process_price(message, channel_name, channel_link):
     except ValueError:
         bot.reply_to(message, "❌ ዋጋውን በቁጥር ብቻ ያስገቡ (ለምሳሌ፦ 1500)። እንደገና /register ብለው ይሞክሩ።")
 
-print("Bot is running...")
-bot.infinity_polling()
+def run_bot():
+    bot.infinity_polling()
+
+if __name__ == '__main__':
+    # ቦቱን በጀርባ (background) ያስነሳል
+    threading.Thread(target=run_bot, daemon=True).start()
+    # Render የሚፈልገውን ፖርት ከፍቶ ይጠብቃል
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
