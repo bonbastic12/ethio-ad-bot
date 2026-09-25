@@ -34,19 +34,8 @@ RENDER_URL = "https://ethio-ad-bot-wz6h.onrender.com"
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
 LANG_STRINGS = {
-    "am": {
-        "welcome": "እንኳን ደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
-        "lang_set": "ቋንቋው ወደ አማርኛ ተቀይሯል።",
-        "enter_ch_name": "እባክዎ የቻናልዎን ስም ያስገቡ (ለምሳሌ፦ MR ODDS):",
-        "enter_ch_link": "የቻናሉን ሊንክ ያስገቡ (ለምሳሌ፦ https://t.me/wodtech1):",
-        "enter_price": "የሚፈልጉትን የመነሻ ዋጋ በብር ያስገቡ (ለምሳሌ፦ 1000):",
-        "registered": "✅ ቻናልዎ በተሳካ ሁኔታ ተመዝግቧል!",
-        "pay_title": "💳 *የክፍያ መመሪያ*\n\n📢 *ቻናል፦* {channel}\n⏳ *ቆይታ፦* {duration}\n💰 *ዋጋ፦* {price} ETB (ወይም ~{usd}$ USD)",
-        "ad_prompt": "🎉 ክፍያዎ ጸድቋል! እባክዎ በቻናሉ እንዲለጠፍ የሚፈልጉትን ማስታወቂያ እዚህ ይላኩ።",
-        "posted": "🎉 ማስታወቂያዎ በቀጥታ በ {channel} ቻናል ላይ በተሳካ ሁኔታ ተለጥፏል!"
-    },
     "en": {
-        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
+        "welcome": "Welcome to Ads Galaxy! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
         "lang_set": "Language switched to English.",
         "enter_ch_name": "Enter channel name:",
         "enter_ch_link": "Enter channel link:",
@@ -55,6 +44,17 @@ LANG_STRINGS = {
         "pay_title": "💳 *Payment Instructions*\n\n📢 *Channel:* {channel}\n⏳ *Duration:* {duration}\n💰 *Total:* {price} ETB (~{usd}$ USD)",
         "ad_prompt": "🎉 Payment approved! Please send the ad content.",
         "posted": "🎉 Ad published to {channel}!"
+    },
+    "am": {
+        "welcome": "እንኳን ደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
+        "lang_set": "ቋንቋው ወደ አማርኛ ተቀይሯል።",
+        "enter_ch_name": "እባክዎ የቻናልዎን ስም ያስገቡ:",
+        "enter_ch_link": "የቻናሉን ሊንክ ያስገቡ:",
+        "enter_price": "የሚፈልጉትን የመነሻ ዋጋ በብር ያስገቡ:",
+        "registered": "✅ ቻናልዎ በተሳካ ሁኔታ ተመዝግቧል!",
+        "pay_title": "💳 *የክፍያ መመሪያ*\n\n📢 *ቻናል፦* {channel}\n⏳ *ቆይታ፦* {duration}\n💰 *ዋጋ፦* {price} ETB (ወይም ~{usd}$ USD)",
+        "ad_prompt": "🎉 ክፍያዎ ጸድቋል! እባክዎ በቻናሉ እንዲለጠፍ የሚፈልጉትን ማስታወቂያ እዚህ ይላኩ።",
+        "posted": "🎉 ማስታወቂያዎ በ {channel} ላይ ተለጥፏል!"
     }
 }
 
@@ -63,8 +63,7 @@ DURATION_OPTIONS = {
     "48h": {"label": "48h (2 Days)", "extra": 300},
     "1w":  {"label": "1 Week (7 Days)", "extra": 600},
     "2w":  {"label": "2 Weeks (14 Days)", "extra": 900},
-    "1m":  {"label": "1 Month (30 Days)", "extra": 1200},
-    "2m":  {"label": "2 Months (60 Days)", "extra": 1500}
+    "1m":  {"label": "1 Month (30 Days)", "extra": 1200}
 }
 
 user_lang = {}
@@ -131,7 +130,6 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# ቀጥታ በድረ-ገጹ ላይ ቻናል መመዝገቢያ
 @app.route('/api/add_channel', methods=['POST'])
 def api_add_channel():
     data = request.get_json() or {}
@@ -162,7 +160,6 @@ def api_add_channel():
 
     return jsonify({'status': 'ok'})
 
-# ቀጥታ በድረ-ገጹ ላይ የክፍያ ማረጋገጫ መቀበያ
 @app.route('/api/submit_payment', methods=['POST'])
 def api_submit_payment():
     data = request.get_json() or {}
@@ -182,15 +179,12 @@ def api_submit_payment():
     conn.commit()
     conn.close()
 
-    loc_label = "🇪🇹 ከኢትዮጵያ (Local)" if loc == 'local' else "🌍 ከውጭ ሀገር (Abroad - In USD + $10 Commission)"
-
     admin_msg = (
-        f"💳 *New Web Order & Payment!*\n\n"
-        f"📍 Location: {loc_label}\n"
+        f"💳 *New Order & Payment!*\n\n"
         f"📢 Channel: {ch_name} ({ch_link})\n"
         f"⏳ Duration: {duration}\n"
         f"💰 Total Amount: *{total}*\n"
-        f"🧾 Reference / TxID: `{tx_ref}`\n\n"
+        f"🧾 TxID / Ref: `{tx_ref}`\n\n"
         f"📝 Ad Content:\n{ad_content}"
     )
     try:
@@ -200,7 +194,6 @@ def api_submit_payment():
 
     return jsonify({'status': 'ok'})
 
-# OTP መላኪያ
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
@@ -215,8 +208,8 @@ def send_otp():
 
     if "@" in contact and SMTP_EMAIL and SMTP_PASSWORD:
         try:
-            msg = MIMEText(f"Your EthioAd.io Verification Code is: {otp_code}")
-            msg['Subject'] = "EthioAd.io Verification Code"
+            msg = MIMEText(f"Your Ads Galaxy Verification Code is: {otp_code}")
+            msg['Subject'] = "Ads Galaxy Verification Code"
             msg['From'] = SMTP_EMAIL
             msg['To'] = contact
             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -237,7 +230,6 @@ def send_otp():
         'message': 'Code generated successfully'
     })
 
-# ጥብቅ የ OTP ማረጋገጫ (Wrong ከሆነ ሙሉ በሙሉ ይከለክላል)
 @app.route('/api/verify_otp', methods=['POST'])
 def verify_otp():
     data = request.get_json() or {}
@@ -253,34 +245,52 @@ def verify_otp():
         conn.commit()
         conn.close()
         return jsonify({'status': 'ok'})
-    
-    return jsonify({'status': 'error', 'message': 'Invalid verification code (Wrong OTP)'}), 400
 
-# የጠየቁት Gemini 3.1 Pro (ከነ አስተማማኝ መጠባበቂያ ሞዴሎች ጋር)
+    return jsonify({'status': 'error', 'message': 'Wrong OTP'}), 400
+
+# GEMINI 3.8 FLASH WITH INTERACTIONS API (NO MORE 404)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return "⚠️ Error: GEMINI_API_KEY is not configured on Render Environment Variables."
+        return "⚠️ Error: GEMINI_API_KEY is not configured on Render."
 
-    last_error = ""
     try:
         ai_client = genai.Client(api_key=key.strip())
-        # የተጠቃሚውን ጥያቄ በቅድሚያ በ Gemini 3.1 Pro መፈጸም
-        for target_model in ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-2.5-flash']:
-            try:
-                res = ai_client.models.generate_content(
-                    model=target_model,
-                    contents=f"{system_prompt}\n\nUser Question: {question_text}"
-                )
-                if res and res.text:
-                    return res.text
-            except Exception as single_err:
-                last_error = str(single_err)
-                continue
-    except Exception as e:
-        return f"AI Service Error: {str(e)}"
+        
+        # 1. First attempt: Official Interactions API with gemini-3.8-flash
+        try:
+            interaction = ai_client.interactions.create(
+                model="gemini-3.8-flash",
+                input=f"{system_prompt}\n\nUser Question: {question_text}"
+            )
+            if hasattr(interaction, 'output_text') and interaction.output_text:
+                return interaction.output_text
+        except Exception as e_interact:
+            pass
 
-    return f"AI Error: {last_error}"
+        # 2. Second attempt: generate_content with gemini-3.8-flash
+        try:
+            res = ai_client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=f"{system_prompt}\n\nUser Question: {question_text}"
+            )
+            if res and res.text:
+                return res.text
+        except Exception as e_gen:
+            pass
+
+        # 3. Third attempt fallback
+        res = ai_client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=f"{system_prompt}\n\nUser Question: {question_text}"
+        )
+        if res and res.text:
+            return res.text
+
+    except Exception as e:
+        return f"AI Error: {str(e)}"
+
+    return "AI Error: Could not generate response."
 
 @app.route('/api/ask_ai', methods=['POST'])
 def api_ask_ai():
@@ -289,9 +299,9 @@ def api_ask_ai():
     lang = data.get('lang', 'am')
 
     system_prompt = (
-        f"You are the official smart AI assistant for Ethio Telegram Ads catalog running on Gemini 3.1 Pro. "
-        f"You must strictly and fluently reply in this language: {lang}. "
-        f"Answer clearly and concisely about advertising on Telegram, channel listing, local and crypto payments."
+        f"You are the official smart AI assistant for Ads Galaxy running on Gemini 3.8. "
+        f"You must strictly reply in this language: {lang}. "
+        f"Answer clearly and concisely about Telegram channels, ad booking, and monetization."
     )
     answer = call_gemini_models(system_prompt, query)
     return jsonify({'reply': answer})
@@ -318,8 +328,8 @@ def choose_language(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     markup = InlineKeyboardMarkup(row_width=3)
     markup.add(
-        InlineKeyboardButton("🇪🇹 አማርኛ", callback_data="lang_am"),
         InlineKeyboardButton("🇬🇧 English", callback_data="lang_en"),
+        InlineKeyboardButton("🇪🇹 አማርኛ", callback_data="lang_am"),
         InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar"),
         InlineKeyboardButton("🇫🇷 Français", callback_data="lang_fr"),
         InlineKeyboardButton("🇪🇸 Español", callback_data="lang_es"),
@@ -346,7 +356,7 @@ def set_lang_handler(call):
 
 def generate_ai_response(user_id, question_text):
     current_l = user_lang.get(user_id, "am")
-    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.1 Pro for Ethio Telegram Ads. Respond concisely in: {current_l}."
+    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.8 for Ads Galaxy. Respond concisely in: {current_l}."
     return call_gemini_models(system_prompt, question_text)
 
 @bot.message_handler(commands=['ask'])
@@ -365,7 +375,7 @@ def cancel_action(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     if message.chat.id in approved_users:
         del approved_users[message.chat.id]
-    bot.reply_to(message, "ሂደቱ ተሰርዟል።")
+    bot.reply_to(message, "Cancelled.")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -419,7 +429,7 @@ def process_price(message, channel_name, channel_link):
 
         bot.reply_to(message, get_text(message.chat.id, "registered"))
     except ValueError:
-        bot.reply_to(message, "❌ Invalid number. Please enter digits only.")
+        bot.reply_to(message, "❌ Invalid number.")
 
 @bot.message_handler(commands=['buy_ad'])
 def buy_ad_start(message):
@@ -504,12 +514,12 @@ def handle_duration_select(call):
 
     full_payment_text = (
         f"{base_title}\n\n"
-        f"🇪🇹 *Local Payments (Ethiopia):*\n"
+        f"🇪🇹 *Local Payments:*\n"
         f"• Telebirr: `{TELEBIRR_NUM}`\n"
         f"• CBE Bank: `{CBE_ACCOUNT}`\n"
         f"• Abyssinia: `{ABYSSINIA_ACCOUNT}`\n"
         f"• Name: {ACCOUNT_NAME}\n\n"
-        f"🌍 *Worldwide Crypto Payments:*\n"
+        f"🌍 *Crypto Payments:*\n"
         f"💎 *TON:*\n`{TON_WALLET}`\n\n"
         f"💵 *USDT (TRC20):*\n`{TRC20_WALLET}`\n\n"
         f"🔹 *USDT / ETH (ERC20):*\n`{ERC20_WALLET}`\n\n"
