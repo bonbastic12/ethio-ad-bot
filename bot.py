@@ -16,7 +16,6 @@ ABYSSINIA_ACCOUNT = "218988407"
 ACCOUNT_NAME = "Wo..."
 RENDER_URL = "https://ethio-ad-bot-wz6h.onrender.com"
 
-# telebot ያለ ፖሊንግ በዌብሁክ ይሰራል
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
 DURATION_OPTIONS = {
@@ -29,6 +28,7 @@ DURATION_OPTIONS = {
 }
 
 user_orders = {}
+approved_users = {}
 
 def get_db_connection():
     conn = sqlite3.connect('ads.db', check_same_thread=False)
@@ -53,7 +53,6 @@ def init_db():
 
 init_db()
 
-# ድረ-ገጹ ቻናሎችን የሚያገኝበት API
 @app.route('/api/channels', methods=['GET'])
 def get_channels():
     conn = get_db_connection()
@@ -61,12 +60,10 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# Cron-job የሚጎበኘው ገጽ
 @app.route('/')
 def home():
     return "Ethio Ad Bot is Running Fast & Live!", 200
 
-# ቴሌግራም መልእክቶችን በቅጽበት የሚቀበልበት የ Webhook መስመር
 @app.route('/webhook', methods=['POST'])
 def webhook():
     if request.headers.get('content-type') == 'application/json':
@@ -76,13 +73,21 @@ def webhook():
         return '', 200
     return 'Forbidden', 403
 
-# /cancel ትዕዛዝ
+def extract_channel_handle(link_or_name):
+    clean = link_or_name.strip()
+    if "t.me/" in clean:
+        clean = clean.split("t.me/")[1].split("/")[0]
+    if not clean.startswith("@"):
+        clean = "@" + clean
+    return clean
+
 @bot.message_handler(commands=['cancel'])
 def cancel_action(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
+    if message.chat.id in approved_users:
+        del approved_users[message.chat.id]
     bot.reply_to(message, "የነበረው ሂደት ተሰርዟል። አዲስ ትዕዛዝ ለመጀመር /start፣ /register ወይም /buy_ad ይጠቀሙ።")
 
-# /start ትዕዛዝ
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
@@ -99,12 +104,10 @@ def send_welcome(message):
         "እንኳን ደህና መጡ! 📢\n\n"
         "• ቻናልዎን ለማስመዝገብ፦ /register\n"
         "• ማስታወቂያ ለማዘዝ፦ /buy_ad\n"
-        "• የነበረውን ለመሰረዝ፦ /cancel\n"
-        "• ሙሉ ዝርዝር በዌብሳይት ለመመልከት ከታች ያለውን ቁልፍ ይጠቀሙ።"
+        "• የነበረውን ለመሰረዝ፦ /cancel"
     )
     bot.reply_to(message, text)
 
-# ----------------- ቻናል ምዝገባ -----------------
 @bot.message_handler(commands=['register'])
 def start_register(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
@@ -115,7 +118,7 @@ def process_channel_name(message):
     if message.text and message.text.startswith('/'):
         return
     channel_name = message.text
-    msg = bot.reply_to(message, "የቻናሉን ሊንክ ያስገቡ (ለምሳሌ፦ https://t.me/MRBENJA12):")
+    msg = bot.reply_to(message, "የቻናሉን ሊንክ ያስገቡ (ለምሳሌ፦ https://t.me/wodtech1):")
     bot.register_next_step_handler(msg, process_channel_link, channel_name)
 
 def process_channel_link(message, channel_name):
@@ -151,7 +154,6 @@ def process_price(message, channel_name, channel_link):
     except ValueError:
         bot.reply_to(message, "❌ ዋጋውን በቁጥር ብቻ ያስገቡ። እንደገና /register ብለው ይሞክሩ።")
 
-# ----------------- ማስታወቂያ ማዘዝ -----------------
 @bot.message_handler(commands=['buy_ad'])
 def buy_ad_start(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
@@ -214,6 +216,7 @@ def handle_duration_select(call):
     user_orders[call.message.chat.id] = {
         'channel_id': ch['id'],
         'channel_name': ch['channel_name'],
+        'channel_link': ch['channel_link'],
         'channel_owner_id': ch['user_id'],
         'duration': duration_info['label'],
         'final_price': final_amount,
@@ -234,9 +237,28 @@ def handle_duration_select(call):
     )
     bot.send_message(call.message.chat.id, msg_text, parse_mode="Markdown")
 
+# ፎቶ ሲላክ (ደረሰኝ ወይም ማስታወቂያ)
 @bot.message_handler(content_types=['photo'])
-def handle_receipt(message):
+def handle_photo(message):
     user_id = message.chat.id
+
+    # ደንበኛው ክፍያው ከጸደቀ በኋላ የፎቶ ማስታወቂያ ሲልክ
+    if user_id in approved_users:
+        order_info = approved_users.pop(user_id)
+        target_channel = extract_channel_handle(order_info['channel_link'])
+        caption = message.caption or ""
+
+        try:
+            bot.send_photo(target_channel, message.photo[-1].file_id, caption=caption)
+            bot.reply_to(message, f"🎉 ማስታወቂያዎ በቀጥታ በ {target_channel} ቻናል ላይ በተሳካ ሁኔታ ተለጥፏል!")
+            bot.send_message(ADMIN_ID, f"✅ ማስታወቂያው በ {target_channel} ቻናል ላይ በራስ-ሰር ተለጥፏል።")
+        except Exception as e:
+            bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
+            bot.reply_to(message, "ማስታወቂያዎ ደርሷል! አድሚኑ በቅርቡ ቻናሉ ላይ ይለጥፈዋል።")
+            bot.send_message(ADMIN_ID, f"⚠️ ማስታወቂያውን በራስ-ሰር መለጠፍ አልተቻለም (ቦቱ በቻናሉ ላይ Admin መሆኑን ያረጋግጡ)። ስህተት፦ {e}")
+        return
+
+    # የደረሰኝ ፎቶ ሲልክ
     if user_id not in user_orders:
         bot.reply_to(message, "እባክዎ መጀመሪያ /buy_ad ብለው ማስታወቂያ የሚያዙበትን ቻናል እና ጊዜ ይምረጡ።")
         return
@@ -274,7 +296,9 @@ def handle_admin_action(call):
     order = user_orders.get(customer_id)
 
     if action == "app":
-        bot.send_message(customer_id, "🎉 ክፍያዎ ተረጋግጦ ጸድቋል! እባክዎ እንዲለጠፍ የሚፈልጉትን የማስታወቂያ ጽሑፍ/ፎቶ እዚህ ይላኩ።")
+        if order:
+            approved_users[customer_id] = order
+        bot.send_message(customer_id, "🎉 ክፍያዎ ተረጋግጦ ጸድቋል! እባክዎ በቻናሉ ላይ እንዲለጠፍ የሚፈልጉትን የማስታወቂያ ጽሑፍ ወይም ፎቶ እዚህ ይላኩ።")
         if order:
             bot.send_message(
                 order['channel_owner_id'],
@@ -285,8 +309,32 @@ def handle_admin_action(call):
         bot.send_message(customer_id, "❌ ክፍያዎ አልተረጋገጠም ወይም ውድቅ ተደርጓል። እባክዎ ትክክለኛውን ደረሰኝ በድጋሚ ይላኩ።")
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🔴 [ውድቅ ተደርጓል]")
 
+# የጽሑፍ ማስታወቂያ ሲላክ
+@bot.message_handler(func=lambda message: True, content_types=['text'])
+def handle_text_ad(message):
+    user_id = message.chat.id
+
+    if message.text.startswith('/'):
+        return
+
+    # ደንበኛው ክፍያው ከጸደቀ በኋላ የጽሑፍ ማስታወቂያ ሲልክ
+    if user_id in approved_users:
+        order_info = approved_users.pop(user_id)
+        target_channel = extract_channel_handle(order_info['channel_link'])
+
+        try:
+            bot.send_message(target_channel, message.text)
+            bot.reply_to(message, f"🎉 የማስታወቂያ ጽሑፍዎ በቀጥታ በ {target_channel} ቻናል ላይ በተሳካ ሁኔታ ተለጥፏል!")
+            bot.send_message(ADMIN_ID, f"✅ ማስታወቂያው በ {target_channel} ቻናል ላይ በራስ-ሰር ተለጥፏል።")
+        except Exception as e:
+            bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
+            bot.reply_to(message, "የማስታወቂያ ጽሑፍዎ ደርሷል! አድሚኑ በቅርቡ ቻናሉ ላይ ይለጥፈዋል።")
+            bot.send_message(ADMIN_ID, f"⚠️ ማስታወቂያውን በራስ-ሰር መለጠፍ አልተቻለም (ቦቱ በቻናሉ ላይ Admin መሆኑን ያረጋግጡ)። ስህተት፦ {e}")
+        return
+
+    bot.reply_to(message, "ትዕዛዝ ለመጀመር /start፣ /buy_ad ወይም /register ይጠቀሙ።")
+
 if __name__ == '__main__':
-    # የቆየውን webhook አስወግዶ አዲሱን በቀጥታ ከ Render ጋር ማገናኘት
     bot.remove_webhook()
     bot.set_webhook(url=f"{RENDER_URL}/webhook")
     port = int(os.environ.get("PORT", 5000))
