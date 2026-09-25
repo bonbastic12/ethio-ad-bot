@@ -584,7 +584,7 @@
       renderChannels(allChannels);
     }
 
-    // 4 TILES CLICK ACTIONS
+    // 4 TILES ACTIONS
     function openLockedModal() {
       document.getElementById('lockedModal').style.display = 'flex';
     }
@@ -605,7 +605,7 @@
       document.getElementById(id).style.display = 'none';
     }
 
-    function submitWithdrawal() {
+    async function submitWithdrawal() {
       const method = document.getElementById('withdrawMethod').value;
       const account = document.getElementById('withdrawAccount').value.trim();
       const amount = document.getElementById('withdrawAmount').value.trim();
@@ -615,8 +615,25 @@
         return;
       }
 
-      alert(`🎉 የ $${amount} ገንዘብ ማውጣት ጥያቄዎ በተሳካ ሁኔታ ቀርቧል! በ ${method} በኩል ተጣርቶ ይላክልዎታል።`);
-      closeModal('withdrawModal');
+      try {
+        const res = await fetch('/api/request_withdraw', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ method: method, account: account, amount: amount })
+        });
+        const data = await res.json();
+
+        if (data.status === 'ok') {
+          alert(`🎉 የ $${amount} ገንዘብ ማውጣት ጥያቄዎ በቀጥታ ለአድሚኑ ደርሷል! ተጣርቶ ክፍያው ይላክልዎታል።`);
+          closeModal('withdrawModal');
+          document.getElementById('valAvailable').innerText = "$0.00";
+          document.getElementById('valLifetime').innerText = `$${amount}`;
+        } else {
+          alert("ስህተት፦ " + data.message);
+        }
+      } catch (err) {
+        alert("የሰርቨር ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።");
+      }
     }
 
     function openGoogleAccountChooser() {
