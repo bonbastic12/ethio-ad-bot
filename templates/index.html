@@ -88,7 +88,7 @@
     </div>
 
     <div id="channelsContainer">
-      <p style="text-align: center; color: #64748b;">ቻናሎች በመጫን ላይ ናቸው...</p>
+      <p style="text-align: center; color: #64748b;" id="loadingText">ቻናሎች በመጫን ላይ ናቸው...</p>
     </div>
   </div>
 
@@ -97,7 +97,7 @@
 
   <div class="chat-modal" id="chatModal">
     <div class="chat-header">
-      <span>🤖 Gemini AI Assistant</span>
+      <span id="aiHeaderTitle">🤖 Gemini AI Assistant</span>
       <span class="chat-close" onclick="toggleChat()">✕</span>
     </div>
     <div class="chat-messages" id="chatMessages">
@@ -105,30 +105,195 @@
     </div>
     <div class="chat-input-bar">
       <input type="text" id="aiQuery" placeholder="ጥያቄዎን ይጻፉ..." onkeypress="if(event.key==='Enter') sendAiMessage()" />
-      <button onclick="sendAiMessage()">ላክ</button>
+      <button id="sendBtn" onclick="sendAiMessage()">ላክ</button>
     </div>
   </div>
 
   <script>
     let allChannels = [];
 
-    // 15 Languages Dictionary
+    // 15 Languages Dictionary (ከታች ያለውን ጽሑፍ ጨምሮ ሙሉ ትርጉም)
     const translations = {
-      am: { title: "የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)", searchPlaceholder: "ቻናል ይፈልጉ (Search channels...)", views: "እይታ (Views)", priceFrom: "ዋጋ ከመነሻው፦", buy: "ማስታወቂያ ይግዙ ➔", aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ማስታወቂያ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።", inputPlaceholder: "ጥያቄዎን ይጻፉ..." },
-      en: { title: "Telegram Channels Catalog", searchPlaceholder: "Search channels...", views: "Views", priceFrom: "Starting at:", buy: "Buy Ad ➔", aiWelcome: "Hello! Ask me any question regarding channels or buying ads.", inputPlaceholder: "Type your question..." },
-      ar: { title: "دليل قنوات التيليجرام", searchPlaceholder: "ابحث عن القنوات...", views: "المشاهدات", priceFrom: "يبدأ من:", buy: "شراء إعلان ➔", aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.", inputPlaceholder: "اكتب سؤالك..." },
-      fr: { title: "Catalogue des chaînes Telegram", searchPlaceholder: "Rechercher des chaînes...", views: "Vues", priceFrom: "À partir de:", buy: "Acheter pub ➔", aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.", inputPlaceholder: "Écrivez votre message..." },
-      es: { title: "Catálogo de Canales de Telegram", searchPlaceholder: "Buscar canales...", views: "Vistas", priceFrom: "Desde:", buy: "Comprar Anuncio ➔", aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o compra de anuncios.", inputPlaceholder: "Escribe tu pregunta..." },
-      ru: { title: "Каталог Telegram-каналов", searchPlaceholder: "Поиск каналов...", views: "Просмотры", priceFrom: "От:", buy: "Купить рекламу ➔", aiWelcome: "Здравствуйте! Задайте вопрос об авторах, каналах или рекламе.", inputPlaceholder: "Введите ваш вопрос..." },
-      pt: { title: "Catálogo de Canais do Telegram", searchPlaceholder: "Pesquisar canais...", views: "Visualizações", priceFrom: "A partir de:", buy: "Comprar Anúncio ➔", aiWelcome: "Olá! Pergunte qualquer dúvida sobre os canais ou anúncios.", inputPlaceholder: "Digite sua pergunta..." },
-      zh: { title: "Telegram 频道目录", searchPlaceholder: "搜索频道...", views: "浏览量", priceFrom: "起价：", buy: "购买广告 ➔", aiWelcome: "您好！有关频道或投放广告的任何问题，随时向我提问。", inputPlaceholder: "输入您的问题..." },
-      hi: { title: "टेलीग्राम चैनल कैटलॉग", searchPlaceholder: "चैनल खोजें...", views: "देखे गए", priceFrom: "प्रारंभिक मूल्य:", buy: "विज्ञापन खरीदें ➔", aiWelcome: "नमस्ते! चैनलों या विज्ञापन खरीदने के बारे में कोई भी प्रश्न पूछें।", inputPlaceholder: "अपना प्रश्न लिखें..." },
-      de: { title: "Telegram-Kanal-Katalog", searchPlaceholder: "Kanäle durchsuchen...", views: "Aufrufe", priceFrom: "Ab:", buy: "Werbung kaufen ➔", aiWelcome: "Hallo! Fragen Sie unseren KI-Assistenten nach Kanälen oder Werbung.", inputPlaceholder: "Geben Sie Ihre Frage ein..." },
-      tr: { title: "Telegram Kanal Kataloğu", searchPlaceholder: "Kanal ara...", views: "Görüntüleme", priceFrom: "Başlangıç:", buy: "Reklam Satın Al ➔", aiWelcome: "Merhaba! Kanallar veya reklam satın alma ile ilgili sorularınızı sorun.", inputPlaceholder: "Sorunuzu yazın..." },
-      it: { title: "Catalogo Canali Telegram", searchPlaceholder: "Cerca canali...", views: "Visualizzazioni", priceFrom: "A partire da:", buy: "Acquista annuncio ➔", aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali o sull'acquisto di annunci.", inputPlaceholder: "Scrivi la tua domanda..." },
-      ja: { title: "Telegram チャンネルカタログ", searchPlaceholder: "チャンネルを検索...", views: "閲覧数", priceFrom: "価格：", buy: "広告を購入 ➔", aiWelcome: "こんにちは！チャンネルや広告購入について何でもお尋ነください。", inputPlaceholder: "質問を入力..." },
-      ko: { title: "텔레그램 채널 카탈로그", searchPlaceholder: "채널 검색...", views: "조회수", priceFrom: "시작 가격:", buy: "광고 구매 ➔", aiWelcome: "안녕하세요! 채널 등록이나 광고 구매에 관해 질문해 주세요.", inputPlaceholder: "질문을 입력하세요..." },
-      sw: { title: "Orodha ya Idhaa za Telegram", searchPlaceholder: "Tafuta idhaa...", views: "Watazamaji", priceFrom: "Kuanzia:", buy: "Nunua Tangazo ➔", aiWelcome: "Jambo! Uliza swali lolote kuhusu idhaa au matangazo.", inputPlaceholder: "Andika swali lako..." }
+      am: { 
+        title: "የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)", 
+        searchPlaceholder: "ቻናል ይፈልጉ (Search channels...)", 
+        views: "እይታ (Views)", 
+        priceFrom: "ዋጋ ከመነሻው፦", 
+        buy: "ማስታወቂያ ይግዙ ➔", 
+        aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ማስታወቂያ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።", 
+        inputPlaceholder: "ጥያቄዎን ይጻፉ...",
+        noChannels: "ምንም የተመዘገበ ቻናል የለም።",
+        loading: "ቻናሎች በመጫን ላይ ናቸው...",
+        send: "ላክ"
+      },
+      en: { 
+        title: "Telegram Channels Catalog", 
+        searchPlaceholder: "Search channels...", 
+        views: "Views", 
+        priceFrom: "Starting at:", 
+        buy: "Buy Ad ➔", 
+        aiWelcome: "Hello! Ask me any question regarding channels or buying ads.", 
+        inputPlaceholder: "Type your question...",
+        noChannels: "No channels registered yet.",
+        loading: "Loading channels...",
+        send: "Send"
+      },
+      ar: { 
+        title: "دليل قنوات التيليجرام", 
+        searchPlaceholder: "ابحث عن القنوات...", 
+        views: "المشاهدات", 
+        priceFrom: "يبدأ من:", 
+        buy: "شراء إعلان ➔", 
+        aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.", 
+        inputPlaceholder: "اكتب سؤالك...",
+        noChannels: "لا توجد قنوات مسجلة بعد.",
+        loading: "جاري تحميل القنوات...",
+        send: "إرسال"
+      },
+      fr: { 
+        title: "Catalogue des chaînes Telegram", 
+        searchPlaceholder: "Rechercher des chaînes...", 
+        views: "Vues", 
+        priceFrom: "À partir de:", 
+        buy: "Acheter pub ➔", 
+        aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.", 
+        inputPlaceholder: "Écrivez votre message...",
+        noChannels: "Aucune chaîne enregistrée pour le moment.",
+        loading: "Chargement des chaînes...",
+        send: "Envoyer"
+      },
+      es: { 
+        title: "Catálogo de Canales de Telegram", 
+        searchPlaceholder: "Buscar canales...", 
+        views: "Vistas", 
+        priceFrom: "Desde:", 
+        buy: "Comprar Anuncio ➔", 
+        aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o compra de anuncios.", 
+        inputPlaceholder: "Escribe tu pregunta...",
+        noChannels: "Aún no hay canales registrados.",
+        loading: "Cargando canales...",
+        send: "Enviar"
+      },
+      ru: { 
+        title: "Каталог Telegram-каналов", 
+        searchPlaceholder: "Поиск каналов...", 
+        views: "Просмотры", 
+        priceFrom: "От:", 
+        buy: "Купить рекламу ➔", 
+        aiWelcome: "Здравствуйте! Задайте вопрос об авторах, каналах или рекламе.", 
+        inputPlaceholder: "Введите ваш вопрос...",
+        noChannels: "Пока нет зарегистрированных каналов.",
+        loading: "Загрузка каналов...",
+        send: "Отправить"
+      },
+      pt: { 
+        title: "Catálogo de Canais do Telegram", 
+        searchPlaceholder: "Pesquisar canais...", 
+        views: "Visualizações", 
+        priceFrom: "A partir de:", 
+        buy: "Comprar Anúncio ➔", 
+        aiWelcome: "Olá! Pergunte qualquer dúvida sobre os canais ou anúncios.", 
+        inputPlaceholder: "Digite sua pergunta...",
+        noChannels: "Nenhum canal registrado ainda.",
+        loading: "Carregando canais...",
+        send: "Enviar"
+      },
+      zh: { 
+        title: "Telegram 频道目录", 
+        searchPlaceholder: "搜索频道...", 
+        views: "浏览量", 
+        priceFrom: "起价：", 
+        buy: "购买广告 ➔", 
+        aiWelcome: "您好！有关频道或投放广告的任何问题，随时向我提问。", 
+        inputPlaceholder: "输入您的问题...",
+        noChannels: "暂无已注册的频道。",
+        loading: "正在加载频道...",
+        send: "发送"
+      },
+      hi: { 
+        title: "टेलीग्राम चैनल कैटलॉग", 
+        searchPlaceholder: "चैनल खोजें...", 
+        views: "देखे गए", 
+        priceFrom: "प्रारंभिक मूल्य:", 
+        buy: "विज्ञापन खरीदें ➔", 
+        aiWelcome: "नमस्ते! चैनलों या विज्ञापन खरीदने के बारे में कोई भी प्रश्न पूछें।", 
+        inputPlaceholder: "अपना प्रश्न लिखें...",
+        noChannels: "अभी तक कोई चैनल पंजीकृत नहीं है।",
+        loading: "चैनल लोड हो रहे हैं...",
+        send: "भेजें"
+      },
+      de: { 
+        title: "Telegram-Kanal-Katalog", 
+        searchPlaceholder: "Kanäle durchsuchen...", 
+        views: "Aufrufe", 
+        priceFrom: "Ab:", 
+        buy: "Werbung kaufen ➔", 
+        aiWelcome: "Hallo! Fragen Sie unseren KI-Assistenten nach Kanälen oder Werbung.", 
+        inputPlaceholder: "Geben Sie Ihre Frage ein...",
+        noChannels: "Noch keine Kanäle registriert.",
+        loading: "Kanäle werden geladen...",
+        send: "Senden"
+      },
+      tr: { 
+        title: "Telegram Kanal Kataloğu", 
+        searchPlaceholder: "Kanal ara...", 
+        views: "Görüntüleme", 
+        priceFrom: "Başlangıç:", 
+        buy: "Reklam Satın Al ➔", 
+        aiWelcome: "Merhaba! Kanallar veya reklam satın alma ile ilgili sorularınızı sorun.", 
+        inputPlaceholder: "Sorunuzu yazın...",
+        noChannels: "Henüz kayıtlı kanal bulunmamaktadır.",
+        loading: "Kanallar yükleniyor...",
+        send: "Gönder"
+      },
+      it: { 
+        title: "Catalogo Canali Telegram", 
+        searchPlaceholder: "Cerca canali...", 
+        views: "Visualizzazioni", 
+        priceFrom: "A partire da:", 
+        buy: "Acquista annuncio ➔", 
+        aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali o sull'acquisto di annunci.", 
+        inputPlaceholder: "Scrivi la tua domanda...",
+        noChannels: "Nessun canale registrato al momento.",
+        loading: "Caricamento canali...",
+        send: "Invia"
+      },
+      ja: { 
+        title: "Telegram チャンネルカタログ", 
+        searchPlaceholder: "チャンネルを検索...", 
+        views: "閲覧数", 
+        priceFrom: "価格：", 
+        buy: "広告を購入 ➔", 
+        aiWelcome: "こんにちは！チャンネルや広告購入について何でもお尋ねください。", 
+        inputPlaceholder: "質問を入力...",
+        noChannels: "登録されているチャンネルはまだありません。",
+        loading: "チャンネルを読み込み中...",
+        send: "送信"
+      },
+      ko: { 
+        title: "텔레그램 채널 카탈로그", 
+        searchPlaceholder: "채널 검색...", 
+        views: "조회수", 
+        priceFrom: "시작 가격:", 
+        buy: "광고 구매 ➔", 
+        aiWelcome: "안녕하세요! 채널 등록이나 광고 구매에 관해 질문해 주세요.", 
+        inputPlaceholder: "질문을 입력하세요...",
+        noChannels: "아직 등록된 채널이 없습니다.",
+        loading: "채널 로딩 중...",
+        send: "보내기"
+      },
+      sw: { 
+        title: "Orodha ya Idhaa za Telegram", 
+        searchPlaceholder: "Tafuta idhaa...", 
+        views: "Watazamaji", 
+        priceFrom: "Kuanzia:", 
+        buy: "Nunua Tangazo ➔", 
+        aiWelcome: "Jambo! Uliza swali lolote kuhusu idhaa au matangazo.", 
+        inputPlaceholder: "Andika swali lako...",
+        noChannels: "Hakuna idhaa zilizosajiliwa bado.",
+        loading: "Inapakia idhaa...",
+        send: "Tuma"
+      }
     };
 
     function switchLanguage() {
@@ -138,6 +303,11 @@
       document.getElementById('searchInput').placeholder = t.searchPlaceholder;
       document.getElementById('aiWelcome').innerText = t.aiWelcome;
       document.getElementById('aiQuery').placeholder = t.inputPlaceholder;
+      document.getElementById('sendBtn').innerText = t.send;
+      
+      const loadingEl = document.getElementById('loadingText');
+      if (loadingEl) loadingEl.innerText = t.loading;
+      
       renderChannels(allChannels);
     }
 
@@ -147,7 +317,7 @@
         allChannels = await res.json();
         renderChannels(allChannels);
       } catch (e) {
-        document.getElementById('channelsContainer').innerHTML = "<p style='color:red; text-align:center;'>ቻናሎችን መጫን አልተቻለም።</p>";
+        document.getElementById('channelsContainer').innerHTML = "<p style='color:red; text-align:center;'>Error loading channels.</p>";
       }
     }
 
@@ -157,7 +327,8 @@
       const t = translations[l] || translations.en;
 
       if (!channels || channels.length === 0) {
-        container.innerHTML = "<p style='text-align:center; color:#64748b;'>ምንም የተመዘገበ ቻናል የለም።</p>";
+        // እዚህ ጋር ጽሑፉ በመረጡት ቋንቋ እንዲቀየር ተደርጓል
+        container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:16px; margin-top:20px;">${t.noChannels}</p>`;
         return;
       }
 
@@ -223,7 +394,7 @@
         const data = await res.json();
         msgs.innerHTML += `<div class="msg bot">${data.reply}</div>`;
       } catch (e) {
-        msgs.innerHTML += `<div class="msg bot">ይቅርታ፣ ችግር ተፈጥሯል፤ እባክዎ እንደገና ይሞክሩ።</div>`;
+        msgs.innerHTML += `<div class="msg bot">Error communicating with AI.</div>`;
       }
       msgs.scrollTop = msgs.scrollHeight;
     }
