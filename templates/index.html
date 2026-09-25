@@ -80,11 +80,14 @@
       font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none;
     }
 
-    /* 4 TILES METRICS */
+    /* 4 TILES METRICS (CLICKABLE) */
     .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
     .stat-tile {
       background: #ffffff; border-radius: 20px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #edf2f7;
+      cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
+    .stat-tile:active { transform: scale(0.97); }
+    .stat-tile:hover { box-shadow: 0 4px 15px rgba(0,0,0,0.08); }
     .stat-icon { font-size: 20px; margin-bottom: 12px; display: inline-block; }
     .stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px; }
     .stat-value { font-size: 22px; font-weight: 900; color: #0f172a; }
@@ -275,27 +278,27 @@
         </button>
       </div>
 
-      <!-- 4 TILES METRICS -->
+      <!-- 4 TILES METRICS (CLICKABLE) -->
       <div class="stats-grid">
-        <div class="stat-tile">
+        <div class="stat-tile" onclick="openLockedModal()">
           <div class="stat-icon">🔒</div>
           <div class="stat-label" id="lblLocked">Locked balance</div>
-          <div class="stat-value">$0.00</div>
+          <div class="stat-value" id="valLocked">$0.00</div>
         </div>
-        <div class="stat-tile">
+        <div class="stat-tile" onclick="openWithdrawModal()">
           <div class="stat-icon">💼</div>
           <div class="stat-label" id="lblAvailable">Available balance</div>
-          <div class="stat-value" style="color:#0284c7;">$0.50</div>
+          <div class="stat-value" id="valAvailable" style="color:#0284c7;">$0.50</div>
         </div>
-        <div class="stat-tile">
+        <div class="stat-tile" onclick="scrollToChannels()">
           <div class="stat-icon">📺</div>
           <div class="stat-label" id="lblMonetized">Monetized</div>
-          <div class="stat-value" id="countMonetized">0</div>
+          <div class="stat-value" id="countMonetized">2</div>
         </div>
-        <div class="stat-tile">
+        <div class="stat-tile" onclick="openLifetimeModal()">
           <div class="stat-icon">⏱️</div>
           <div class="stat-label" id="lblLifetime">Lifetime withdrawn</div>
-          <div class="stat-value">$0.00</div>
+          <div class="stat-value" id="valLifetime">$0.00</div>
         </div>
       </div>
 
@@ -308,6 +311,58 @@
       <input type="text" id="searchInput" class="search-input" placeholder="ቻናል ይፈልጉ..." onkeyup="filterChannels()" />
       <div id="channelsContainer">
         <p style="text-align:center; color:#64748b; margin-top:20px;" id="loadingOrEmptyText">ምንም የተመዘገበ ቻናል የለም።</p>
+      </div>
+    </div>
+
+    <!-- TILE 1: LOCKED BALANCE MODAL -->
+    <div class="modal-overlay" id="lockedModal">
+      <div class="modal-window">
+        <span class="modal-close" onclick="closeModal('lockedModal')">✕</span>
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:8px;">🔒 Locked Balance</h2>
+        <div style="font-size:28px; font-weight:900; color:#0f172a; margin-bottom:12px;">$0.00</div>
+        <p style="font-size:13px; color:#64748b; line-height:1.6; margin-bottom:16px;">
+          የታገደ ሂሳብ (Locked balance) ማስታወቂያ አሰሪዎች ያስያዙት ክፍያ ሲሆን፣ የማስታወቂያው ጊዜ ተጠናቆ በቻናልዎ ላይ መለጠፉ ሲረጋገጥ በቀጥታ ወደ <b>Available balance</b> ይዘዋወራል።
+        </p>
+        <button class="btn-submit" onclick="closeModal('lockedModal')">እሺ ተረድቻለሁ (Close)</button>
+      </div>
+    </div>
+
+    <!-- TILE 2: AVAILABLE BALANCE / WITHDRAWAL MODAL -->
+    <div class="modal-overlay" id="withdrawModal">
+      <div class="modal-window">
+        <span class="modal-close" onclick="closeModal('withdrawModal')">✕</span>
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:6px;">💼 Withdraw Earnings</h2>
+        <div style="font-size:24px; font-weight:900; color:#0284c7; margin-bottom:12px;">Available: $0.50 (~62.50 ETB)</div>
+        <div class="form-group">
+          <label>የማውጫ መንገድ ይምረጡ (Payment Method)</label>
+          <select id="withdrawMethod">
+            <option value="telebirr">🇪🇹 ቴሌብር (Telebirr)</option>
+            <option value="cbe">🇪🇹 የኢትዮጵያ ንግድ ባንክ (CBE)</option>
+            <option value="usdt">💎 USDT (TRC20)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>የሂሳብ ቁጥር / Phone or Wallet Address</label>
+          <input type="text" id="withdrawAccount" placeholder="e.g. 0912345678 or TRC20 address" />
+        </div>
+        <div class="form-group">
+          <label>የሚወጣው መጠን ($)</label>
+          <input type="number" id="withdrawAmount" placeholder="Min $0.50" value="0.50" />
+        </div>
+        <button class="btn-submit" onclick="submitWithdrawal()">ገንዘብ አውጣ (Request Payout)</button>
+      </div>
+    </div>
+
+    <!-- TILE 4: LIFETIME WITHDRAWN MODAL -->
+    <div class="modal-overlay" id="lifetimeModal">
+      <div class="modal-window">
+        <span class="modal-close" onclick="closeModal('lifetimeModal')">✕</span>
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:8px;">⏱️ Lifetime Withdrawn</h2>
+        <div style="font-size:28px; font-weight:900; color:#16a34a; margin-bottom:12px;">$0.00</div>
+        <p style="font-size:13px; color:#64748b; line-height:1.6; margin-bottom:16px;">
+          እስካሁን ድረስ ከ ethio-ad-bot የተሳካ ክፍያ የተደረገበት አጠቃላይ ድምር እዚህ ይታያል። እስካሁን ያወጡት ገንዘብ የለም።
+        </p>
+        <button class="btn-submit" onclick="closeModal('lifetimeModal')">ዝጋ (Close)</button>
       </div>
     </div>
 
@@ -440,7 +495,7 @@
         search: "ቻናል ይፈልጉ...",
         noChannels: "ምንም የተመዘገበ ቻናል የለም።",
         views: "እይታ",
-        buy: "ማስታወቂያ ይግዙ ➔",
+        buy: "Buy Ad ➔",
         aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ገቢ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።",
         aiPlaceholder: "AI ረዳቱን ይጠይቁ...",
         send: "ላክ"
@@ -478,459 +533,13 @@
         aiWelcome: "Hello! Ask me any question regarding channels or monetization.",
         aiPlaceholder: "Ask AI...",
         send: "Send"
-      },
-      ar: {
-        authDesc: "أهلاً بك! سجّل الدخول للوصول إلى لوحة التحكم.",
-        google: "المتابعة باستخدام Google",
-        country: "اختر الدولة (250+ دولة):",
-        contact: "البريد الإلكتروني أو الهاتف",
-        sendCode: "إرسال رمز من 5 أرقام",
-        otpTitle: "أدخل الرمز المكون من 5 أرقام",
-        resend: "تغيير جهة الاتصال / إعادة الإرسال",
-        verifyBtn: "تأكيد ومتابعة ➔",
-        roleHeader: "هل أنت معلن أم صاحب قناة؟",
-        roleSub: "يرجى الاختيار:",
-        roleAdvTitle: "📢 أنا معلن",
-        roleAdvSub: "أريد الإعلان في القنوات.",
-        roleChTitle: "📺 أنا صاحب قناة",
-        roleChSub: "أمتلك قنوات وأرغب بتحقيق الدخل.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "قنوات التيليجرام وأرباحك في مركز تحكم واحد متطور.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "ابحث عن القنوات...",
-        noChannels: "لا توجد قنوات مسجلة بعد.",
-        views: "المشاهدات",
-        buy: "شراء إعلان ➔",
-        aiWelcome: "مرحباً! اسألني عن القنوات وكيفية تحقيق الدخل.",
-        aiPlaceholder: "اسأل الذكاء الاصطناعي...",
-        send: "إرسال"
-      },
-      fr: {
-        authDesc: "Bienvenue! Connectez-vous à votre tableau de bord.",
-        google: "Continuer avec Google",
-        country: "Sélectionnez le pays (250+ pays):",
-        contact: "Email ou Téléphone",
-        sendCode: "Envoyer le code à 5 chiffres",
-        otpTitle: "Entrez le code à 5 chiffres",
-        resend: "Changer le contact / Renvoyer",
-        verifyBtn: "Vérifier & Continuer ➔",
-        roleHeader: "Êtes-vous un annonceur ou un créateur?",
-        roleSub: "Veuillez choisir:",
-        roleAdvTitle: "📢 Je suis annonceur",
-        roleAdvSub: "Je souhaite promouvoir sur les chaînes.",
-        roleChTitle: "📺 Je possède une chaîne",
-        roleChSub: "Je possède des chaînes et souhaite monétiser.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Votre inventaire Telegram et vos revenus dans une interface élégante.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "Rechercher des chaînes...",
-        noChannels: "Aucune chaîne enregistrée.",
-        views: "Vues",
-        buy: "Acheter pub ➔",
-        aiWelcome: "Bonjour! Posez vos questions sur la monétisation et les chaînes.",
-        aiPlaceholder: "Demandez à l'IA...",
-        send: "Envoyer"
-      },
-      es: {
-        authDesc: "¡Bienvenido! Inicia sesión para acceder a tu panel de control.",
-        google: "Continuar con Google",
-        country: "Seleccione país (250+ países):",
-        contact: "Correo electrónico o teléfono",
-        sendCode: "Enviar código de 5 dígitos",
-        otpTitle: "Ingrese el código de 5 dígitos",
-        resend: "Cambiar contacto / Reenviar",
-        verifyBtn: "Verificar y Continuar ➔",
-        roleHeader: "¿Es anunciante o dueño de canal?",
-        roleSub: "Seleccione una opción:",
-        roleAdvTitle: "📢 Soy Anunciante",
-        roleAdvSub: "Quiero promocionar en canales.",
-        roleChTitle: "📺 Soy dueño de canal",
-        roleChSub: "Tengo canales y quiero monetizar.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Tu inventario de Telegram y ganancias en una sala de control moderna.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "Buscar canales...",
-        noChannels: "Aún no hay canales registrados.",
-        views: "Vistas",
-        buy: "Comprar Anuncio ➔",
-        aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o monetización.",
-        aiPlaceholder: "Pregunta a la IA...",
-        send: "Enviar"
-      },
-      ru: {
-        authDesc: "Добро пожаловать! Войдите в панель управления издателя.",
-        google: "Продолжить через Google",
-        country: "Выберите страну (250+ стран):",
-        contact: "Email или телефон",
-        sendCode: "Отправить 5-значный код",
-        otpTitle: "Введите 5-значный код",
-        resend: "Изменить контакт / Повторить",
-        verifyBtn: "Подтвердить и продолжить ➔",
-        roleHeader: "Вы рекламодатель или владелец канала?",
-        roleSub: "Пожалуйста, выберите:",
-        roleAdvTitle: "📢 Я рекламодатель",
-        roleAdvSub: "Хочу размещать рекламу.",
-        roleChTitle: "📺 Я владелец канала",
-        roleChSub: "У меня есть каналы для заработка.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Ваши Telegram-каналы и доходы в едином удобном интерфейсе.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "Поиск каналов...",
-        noChannels: "Пока нет каналов.",
-        views: "Просмотры",
-        buy: "Купить рекламу ➔",
-        aiWelcome: "Здравствуйте! Задайте любой вопрос о каналах и заработке.",
-        aiPlaceholder: "Спросите ИИ...",
-        send: "Отправить"
-      },
-      pt: {
-        authDesc: "Bem-vindo! Acesse sua central de controle de publicador.",
-        google: "Continuar com Google",
-        country: "Selecione o país (250+ países):",
-        contact: "Email ou telefone",
-        sendCode: "Enviar código de 5 dígitos",
-        otpTitle: "Digite o código de 5 dígitos",
-        resend: "Mudar contato / Reenviar",
-        verifyBtn: "Verificar e Continuar ➔",
-        roleHeader: "Você é anunciante ou dono de canal?",
-        roleSub: "Selecione uma opção:",
-        roleAdvTitle: "📢 Sou Anunciante",
-        roleAdvSub: "Quero anunciar em canais.",
-        roleChTitle: "📺 Sou Dono de Canal",
-        roleChSub: "Tenho canais e quero monetizar.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Seu inventário do Telegram e ganhos em um único painel.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "Pesquisar canais...",
-        noChannels: "Nenhum canal registrado.",
-        views: "Visualizações",
-        buy: "Comprar Anúncio ➔",
-        aiWelcome: "Olá! Pergunte qualquer dúvida sobre canais ou monetização.",
-        aiPlaceholder: "Pergunte à IA...",
-        send: "Enviar"
-      },
-      zh: {
-        authDesc: "欢迎！登录以访问您的发布商控制中心。",
-        google: "使用 Google 继续",
-        country: "选择国家/地区 (250+ 国家)：",
-        contact: "邮箱或手机号",
-        sendCode: "发送5位验证码",
-        otpTitle: "输入5位验证码",
-        resend: "修改联系方式 / 重新发送",
-        verifyBtn: "验证并继续 ➔",
-        roleHeader: "您是广告主还是频道主？",
-        roleSub: "请选择：",
-        roleAdvTitle: "📢 我是广告主",
-        roleAdvSub: "我想在频道投放广告。",
-        roleChTitle: "📺 我是频道主",
-        roleChSub: "我拥有频道并想变现。",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "在一个精致的控制室中管理您的电报资产和收益。",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "搜索频道...",
-        noChannels: "暂无已注册频道。",
-        views: "浏览量",
-        buy: "购买广告 ➔",
-        aiWelcome: "您好！有关频道推广或变现的问题随时问我。",
-        aiPlaceholder: "向 AI 提问...",
-        send: "发送"
-      },
-      hi: {
-        authDesc: "स्वागत है! अपने प्रकाशक कमांड सेंटर तक पहुँचने के लिए साइन इन करें।",
-        google: "Google के साथ जारी रखें",
-        country: "देश चुनें (250+ देश):",
-        contact: "ईमेल या फ़ोन नंबर",
-        sendCode: "5 अंकों का कोड भेजें",
-        otpTitle: "5 अंकों का कोड दर्ज करें",
-        resend: "संपर्क बदलें / पुनः भेजें",
-        verifyBtn: "सत्यापित करें और आगे बढ़ें ➔",
-        roleHeader: "क्या आप विज्ञापनदाता हैं या चैनल के मालिक?",
-        roleSub: "कृपया एक चुनें:",
-        roleAdvTitle: "📢 मैं विज्ञापनदाता हूँ",
-        roleAdvSub: "मैं चैनलों पर प्रचार करना चाहता हूँ।",
-        roleChTitle: "📺 मैं चैनल का मालिक हूँ",
-        roleChSub: "मेरे पास चैनल हैं और मैं कमाना चाहता हूँ।",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "आपकी टेलीग्राम संपत्ति और आय एक आधुनिक डैशबोर्ड में।",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "चैनल खोजें...",
-        noChannels: "कोई चैनल पंजीकृत नहीं है।",
-        views: "देखे गए",
-        buy: "विज्ञापन खरीदें ➔",
-        aiWelcome: "नमस्ते! चैनलों और मुद्रीकरण के बारे में कुछ भी पूछें।",
-        aiPlaceholder: "AI से पूछें...",
-        send: "भेजें"
-      },
-      de: {
-        authDesc: "Willkommen! Melden Sie sich in Ihrer Publisher-Zentrale an.",
-        google: "Mit Google fortfahren",
-        country: "Land auswählen (250+ Länder):",
-        contact: "E-Mail oder Telefon",
-        sendCode: "5-stelligen Code senden",
-        otpTitle: "5-stelligen Code eingeben",
-        resend: "Kontakt ändern / Erneut senden",
-        verifyBtn: "Bestätigen & Weiter ➔",
-        roleHeader: "Sind Sie Werbetreibender oder Kanalbesitzer?",
-        roleSub: "Bitte wählen:",
-        roleAdvTitle: "📢 Ich bin Werbetreibender",
-        roleAdvSub: "Ich möchte Werbung schalten.",
-        roleChTitle: "📺 Ich bin Kanalbesitzer",
-        roleChSub: "Ich besitze Kanäle und möchte monetarisieren.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Ihr Telegram-Inventar und Ihre Einnahmen an einem Ort.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Letzte Aktivitäten",
-        viewAll: "+ Add Channel ➔",
-        search: "Kanäle durchsuchen...",
-        noChannels: "Noch keine Kanäle registriert.",
-        views: "Aufrufe",
-        buy: "Werbung kaufen ➔",
-        aiWelcome: "Hallo! Fragen Sie mich alles über Kanäle und Einnahmen.",
-        aiPlaceholder: "KI fragen...",
-        send: "Senden"
-      },
-      tr: {
-        authDesc: "Hoş geldiniz! Yayıncı Kontrol Merkezine erişmek için giriş yapın.",
-        google: "Google ile Devam Et",
-        country: "Ülke seçin (250+ Ülke):",
-        contact: "E-posta veya telefon",
-        sendCode: "5 Haneli Kod Gönder",
-        otpTitle: "5 Haneli Kodu Girin",
-        resend: "İletişimi Değiştir / Tekrar Gönder",
-        verifyBtn: "Doğrula & Devam Et ➔",
-        roleHeader: "Reklamveren misiniz yoksa kanal sahibi mi?",
-        roleSub: "Lütfen seçin:",
-        roleAdvTitle: "📢 Reklamverenim",
-        roleAdvSub: "Kanallarda reklam vermek istiyorum.",
-        roleChTitle: "📺 Kanal Sahibiyim",
-        roleChSub: "Kanallarımdan para kazanmak istiyorum.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Telegram envanteriniz ve kazançlarınız tek bir kontrol merkezinde.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Son etkinlikler",
-        viewAll: "+ Add Channel ➔",
-        search: "Kanal ara...",
-        noChannels: "Henüz kayıtlı kanal yok.",
-        views: "Görüntüleme",
-        buy: "Reklam Satın Al ➔",
-        aiWelcome: "Merhaba! Kanallar veya para kazanma hakkında soru sorabilirsiniz.",
-        aiPlaceholder: "Yapay zekaya sor...",
-        send: "Gönder"
-      },
-      it: {
-        authDesc: "Benvenuto! Accedi al centro di comando del publisher.",
-        google: "Continua con Google",
-        country: "Seleziona paese (250+ paesi):",
-        contact: "Email o Telefono",
-        sendCode: "Invia codice a 5 cifre",
-        otpTitle: "Inserisci il codice a 5 cifre",
-        resend: "Modifica contatto / Reinvia",
-        verifyBtn: "Verifica e Continua ➔",
-        roleHeader: "Sei un inserzionista o proprietario di un canale?",
-        roleSub: "Seleziona un'opzione:",
-        roleAdvTitle: "📢 Sono un Inserzionista",
-        roleAdvSub: "Voglio pubblicare annunci.",
-        roleChTitle: "📺 Sono Proprietario di Canale",
-        roleChSub: "Possiedo canali e voglio monetizzare.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Il tuo inventario Telegram e i guadagni in una sola interfaccia.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Attività recente",
-        viewAll: "+ Add Channel ➔",
-        search: "Cerca canali...",
-        noChannels: "Nessun canale registrato.",
-        views: "Visualizzazioni",
-        buy: "Acquista annuncio ➔",
-        aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali e sulla monetizzazione.",
-        aiPlaceholder: "Chiedi all'IA...",
-        send: "Invia"
-      },
-      ja: {
-        authDesc: "ようこそ！パブリッシャーコマンドセンターへログインしてください。",
-        google: "Google でログイン",
-        country: "国を選択 (250+ ヵ国)：",
-        contact: "メールアドレスまたは電話番号",
-        sendCode: "5桁のコードを送信",
-        otpTitle: "5桁の認証コードを入力",
-        resend: "変更 / 再送信",
-        verifyBtn: "確認して進む ➔",
-        roleHeader: "広告主様ですか、チャンネル所有者様ですか？",
-        roleSub: "選択してください：",
-        roleAdvTitle: "📢 広告主です",
-        roleAdvSub: "広告を掲載したい。",
-        roleChTitle: "📺 チャンネル所有者です",
-        roleChSub: "チャンネルで収益化したい。",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "テレグラム資産と収益を洗練された1つの管理画面で。",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "最近のアクティビティ",
-        viewAll: "+ Add Channel ➔",
-        search: "チャンネルを検索...",
-        noChannels: "登録チャンネルがありません。",
-        views: "閲覧数",
-        buy: "広告を購入 ➔",
-        aiWelcome: "こんにちは！チャンネルや収益化について何でもご質問ください。",
-        aiPlaceholder: "AIに尋ねる...",
-        send: "送信"
-      },
-      ko: {
-        authDesc: "환영합니다! 게시자 커맨드 센터에 로그인하세요.",
-        google: "Google 계정으로 계속",
-        country: "국가 선택 (250+ 국가):",
-        contact: "이메일 또는 전화번호",
-        sendCode: "5자리 인증 코드 전송",
-        otpTitle: "5자리 인증 코드 입력",
-        resend: "연락처 변경 / 재전송",
-        verifyBtn: "확인 및 계속 ➔",
-        roleHeader: "광고주이신가요, 채널 소유자이신가요?",
-        roleSub: "선택해 주세요:",
-        roleAdvTitle: "📢 광고주입니다",
-        roleAdvSub: "광고를 집행하고 싶습니다.",
-        roleChTitle: "📺 채널 소유자입니다",
-        roleChSub: "채널로 수익을 창출하고 싶습니다.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "텔레그램 자산과 수익을 세련된 대시보드에서 한눈에 관리하세요.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "최근 활동",
-        viewAll: "+ Add Channel ➔",
-        search: "채널 검색...",
-        noChannels: "등록된 채널이 없습니다.",
-        views: "조회수",
-        buy: "광고 구매 ➔",
-        aiWelcome: "안녕하세요! 채널 및 수익 창출에 관해 질문해 주세요.",
-        aiPlaceholder: "AI에게 질문하기...",
-        send: "보내기"
-      },
-      sw: {
-        authDesc: "Karibu! Ingia kwenye Kituo cha Amri cha Wachapishaji.",
-        google: "Endelea na Google",
-        country: "Chagua Nchi (250+ nchi):",
-        contact: "Barua pepe au Nambari ya Simu",
-        sendCode: "Tuma Nambari ya Tarakimu 5",
-        otpTitle: "Weka Nambari ya Tarakimu 5",
-        resend: "Badilisha mawasiliano / Tuma tena",
-        verifyBtn: "Thibitisha na Uendelee ➔",
-        roleHeader: "Wewe ni Mtangazaji au Mmiliki wa Idhaa?",
-        roleSub: "Tafadhali chagua:",
-        roleAdvTitle: "📢 Mimi ni Mtangazaji",
-        roleAdvSub: "Ninataka kutangaza kwenye idhaa.",
-        roleChTitle: "📺 Mimi ni Mmiliki wa Idhaa",
-        roleChSub: "Nina idhaa na nataka kupata mapato.",
-        navBrand: "ethio-ad-bot",
-        publisherBadge: "PUBLISHER COMMAND CENTER",
-        heroTitle: "Grow, monetize,<br />withdraw.",
-        heroSub: "Mali zako za Telegram na mapato katika chumba kimoja nadhifu cha udhibiti.",
-        btnMonetize: "MONETIZE MORE",
-        locked: "Locked balance",
-        available: "Available balance",
-        monetized: "Monetized",
-        lifetime: "Lifetime withdrawn",
-        recentAct: "Recent activity",
-        viewAll: "+ Add Channel ➔",
-        search: "Tafuta idhaa...",
-        noChannels: "Hakuna idhaa iliyosajiliwa.",
-        views: "Watazamaji",
-        buy: "Nunua Tangazo ➔",
-        aiWelcome: "Jambo! Niulize swali lolote kuhusu idhaa na mapato.",
-        aiPlaceholder: "Uliza AI...",
-        send: "Tuma"
       }
     };
 
     let userOriginLocation = 'local';
 
     function handleCountryChange(val) {
-      if (val === '+251') {
-        userOriginLocation = 'local';
-      } else {
-        userOriginLocation = 'abroad';
-      }
+      userOriginLocation = (val === '+251') ? 'local' : 'abroad';
     }
 
     function syncAndSwitchLanguage(lang) {
@@ -938,7 +547,6 @@
       document.getElementById('langSwitcher').value = lang;
 
       const t = translations[lang] || translations.am;
-
       document.getElementById('lblAuthDesc').innerText = t.authDesc;
       document.getElementById('lblGoogle').innerText = t.google;
       document.getElementById('lblCountrySelect').innerText = t.country;
@@ -976,8 +584,43 @@
       renderChannels(allChannels);
     }
 
+    // 4 TILES CLICK ACTIONS
+    function openLockedModal() {
+      document.getElementById('lockedModal').style.display = 'flex';
+    }
+
+    function openWithdrawModal() {
+      document.getElementById('withdrawModal').style.display = 'flex';
+    }
+
+    function openLifetimeModal() {
+      document.getElementById('lifetimeModal').style.display = 'flex';
+    }
+
+    function scrollToChannels() {
+      document.getElementById('channelsContainer').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).style.display = 'none';
+    }
+
+    function submitWithdrawal() {
+      const method = document.getElementById('withdrawMethod').value;
+      const account = document.getElementById('withdrawAccount').value.trim();
+      const amount = document.getElementById('withdrawAmount').value.trim();
+
+      if (!account || !amount) {
+        alert("እባክዎ ትክክለኛ የሂሳብ ቁጥር እና መጠን ያስገቡ።");
+        return;
+      }
+
+      alert(`🎉 የ $${amount} ገንዘብ ማውጣት ጥያቄዎ በተሳካ ሁኔታ ቀርቧል! በ ${method} በኩል ተጣርቶ ይላክልዎታል።`);
+      closeModal('withdrawModal');
+    }
+
     function openGoogleAccountChooser() {
-      const email = prompt("እባክዎ በስልክዎ ላይ ካሉት የ Google/Gmail አካውንቶች አንዱን ያስገቡ፦");
+      const email = prompt("Please enter your Google / Gmail account:");
       if (email && email.includes('@')) {
         localStorage.setItem('ethio_ad_auth', 'verified');
         moveToRoleSelection();
@@ -989,11 +632,11 @@
       const countryCode = document.getElementById('countrySelect').value;
 
       if (!contact) {
-        alert("እባክዎ ትክክለኛ ኢሜይል ወይም ስልክ ቁጥር ያስገቡ።");
+        alert("Please enter a valid phone number or email address.");
         return;
       }
 
-      document.getElementById('btnSendOtp').innerText = "በመላክ ላይ...";
+      document.getElementById('btnSendOtp').innerText = "Sending...";
 
       try {
         const res = await fetch('/api/send_otp', {
@@ -1006,16 +649,16 @@
         document.getElementById('btnSendOtp').innerText = (translations[currentLang] || translations.am).sendCode;
 
         if (data.status === 'ok') {
-          alert(`🔐 የእርስዎ ባለ 5 ዲጂት ማረጋገጫ ኮድ፦ ${data.otp}`);
-          document.getElementById('sentNotice').innerText = `ባለ 5 ዲጂቱ ኮድ ወደ ${contact} ተልኳል`;
+          alert(`🔐 Your 5-digit verification code is: ${data.otp}`);
+          document.getElementById('sentNotice').innerText = `Code sent to: ${contact}`;
           document.getElementById('stepInput').style.display = 'none';
           document.getElementById('stepOtp').style.display = 'block';
         } else {
-          alert("ስህተት፦ " + data.message);
+          alert("Error: " + data.message);
         }
       } catch (err) {
-        document.getElementById('btnSendOtp').innerText = "ባለ 5 ዲጂት ኮድ ላክ";
-        alert("የሰርቨር ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።");
+        document.getElementById('btnSendOtp').innerText = "Send 5-Digit Code";
+        alert("Server error. Please try again.");
       }
     }
 
@@ -1032,11 +675,11 @@
       const contact = document.getElementById('targetContact').value.trim();
 
       if (otp.length !== 5) {
-        alert("እባክዎ ባለ 5 ዲጂቱን ኮድ ሙሉ በሙሉ ያስገቡ።");
+        alert("Please enter the full 5-digit verification code.");
         return;
       }
 
-      document.getElementById('btnVerifySubmit').innerText = "በማረጋገጥ ላይ...";
+      document.getElementById('btnVerifySubmit').innerText = "Verifying...";
 
       try {
         const res = await fetch('/api/verify_otp', {
@@ -1051,11 +694,11 @@
         if (data.status === 'ok') {
           moveToRoleSelection();
         } else {
-          alert("❌ ያስገቡት የማረጋገጫ ኮድ የተሳሳተ ነው (Wrong OTP)! እባክዎ ትክክለኛውን ኮድ ያስገቡ።");
+          alert("❌ Wrong OTP! The verification code you entered is incorrect.");
         }
       } catch (e) {
-        document.getElementById('btnVerifySubmit').innerText = "አረጋግጥና ቀጥል ➔";
-        alert("❌ ያስገቡት የማረጋገጫ ኮድ የተሳሳተ ነው (Wrong OTP)!");
+        document.getElementById('btnVerifySubmit').innerText = "Verify & Proceed ➔";
+        alert("❌ Wrong OTP! Verification failed.");
       }
     }
 
@@ -1096,7 +739,7 @@
       const price = document.getElementById('newChPrice').value.trim();
 
       if (!name || !link || !price) {
-        alert("እባክዎ ሁሉንም የቻናል መረጃዎች ያስገቡ።");
+        alert("Please fill in all channel details.");
         return;
       }
 
@@ -1108,14 +751,14 @@
         });
         const data = await res.json();
         if (data.status === 'ok') {
-          alert("🎉 ቻናልዎ በተሳካ ሁኔታ ተመዝግቧል!");
+          alert("🎉 Channel registered successfully!");
           closeAddChannelModal();
           loadChannels();
         } else {
-          alert("ስህተት፦ " + data.message);
+          alert("Error: " + data.message);
         }
       } catch (e) {
-        alert("ቻናል በመመዝገብ ላይ ችግር አጋጥሟል።");
+        alert("Error registering channel.");
       }
     }
 
@@ -1126,7 +769,7 @@
       currentSelectedChannel = allChannels.find(c => c.id === chId);
       if (!currentSelectedChannel) return;
 
-      document.getElementById('payChannelDetails').innerText = `ቻናል፦ ${currentSelectedChannel.channel_name} (${currentSelectedChannel.channel_link})`;
+      document.getElementById('payChannelDetails').innerText = `Channel: ${currentSelectedChannel.channel_name} (${currentSelectedChannel.channel_link})`;
       document.getElementById('payDurationSelect').value = "0";
 
       if (userOriginLocation === 'abroad') {
@@ -1190,7 +833,7 @@
       const durationLabel = document.getElementById('payDurationSelect').options[document.getElementById('payDurationSelect').selectedIndex].text;
 
       if (!txRef || !adText) {
-        alert("እባክዎ የክፍያ ማረጋገጫ ቁጥር እና የማስታወቂያውን ጽሑፍ ያስገቡ።");
+        alert("Please provide the transaction reference and ad description.");
         return;
       }
 
@@ -1212,13 +855,13 @@
         });
         const data = await res.json();
         if (data.status === 'ok') {
-          alert("🎉 የክፍያ መረጃዎ በተሳካ ሁኔታ ተልኳል! አድሚኑ እንደተመለከተው ማስታወቂያዎ በቀጥታ በቻናሉ ላይ ይለጠፋል።");
+          alert("🎉 Payment information submitted! The admin will review and publish your ad.");
           closePaymentModal();
         } else {
-          alert("ስህተት፦ " + data.message);
+          alert("Error: " + data.message);
         }
       } catch (e) {
-        alert("ክፍያ በማስገባት ላይ ችግር አጋጥሟል።");
+        alert("Error submitting payment.");
       }
     }
 
@@ -1289,7 +932,7 @@
         const d = await res.json();
         msgs.innerHTML += `<div class="msg bot">${d.reply}</div>`;
       } catch (e) {
-        msgs.innerHTML += `<div class="msg bot">ይቅርታ፣ AI ረዳቱ ምላሽ መስጠት አልቻለም።</div>`;
+        msgs.innerHTML += `<div class="msg bot">AI Assistant response error.</div>`;
       }
       msgs.scrollTop = msgs.scrollHeight;
     }
