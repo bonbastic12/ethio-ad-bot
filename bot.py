@@ -197,6 +197,31 @@ def api_submit_payment():
 
     return jsonify({'status': 'ok'})
 
+# ገንዘብ ማውጣት ሲጠየቅ ለአድሚኑ በቴሌግራም የሚልክ አዲስ ተግባር
+@app.route('/api/request_withdraw', methods=['POST'])
+def api_request_withdraw():
+    data = request.get_json() or {}
+    method = data.get('method', '')
+    account = data.get('account', '')
+    amount = data.get('amount', '')
+
+    if not account or not amount:
+        return jsonify({'status': 'error', 'message': 'Account and amount are required'}), 400
+
+    admin_msg = (
+        f"🚨 *New Withdrawal Request!*\n\n"
+        f"💵 Amount: *${amount} USD*\n"
+        f"🏦 Method: *{method.upper()}*\n"
+        f"📍 Account / Wallet: `{account}`\n\n"
+        f"እባክዎ ክፍያውን ፈጽመው ለተጠቃሚው ያረጋግጡ።"
+    )
+    try:
+        bot.send_message(ADMIN_ID, admin_msg, parse_mode="Markdown")
+    except Exception as e:
+        pass
+
+    return jsonify({'status': 'ok'})
+
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
@@ -251,7 +276,7 @@ def verify_otp():
 
     return jsonify({'status': 'error', 'message': 'Wrong OTP'}), 400
 
-# OFFICIAL GEMINI 3.8 FLASH ONLY (WITH 429 RATE LIMIT CATCH)
+# OFFICIAL GEMINI 3.8 FLASH ONLY (Rate limit catch ተካቷል)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
