@@ -46,7 +46,7 @@ LANG_STRINGS = {
         "posted": "🎉 ማስታወቂያዎ በቀጥታ በ {channel} ቻናል ላይ በተሳካ ሁኔታ ተለጥፏል!"
     },
     "en": {
-        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel operation: /cancel\n• Chat with AI: /ask or type your question.",
+        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
         "lang_set": "Language switched to English.",
         "enter_ch_name": "Enter channel name:",
         "enter_ch_link": "Enter channel link:",
@@ -131,6 +131,7 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
+# ቀጥታ በድረ-ገጹ ላይ ቻናል መመዝገቢያ
 @app.route('/api/add_channel', methods=['POST'])
 def api_add_channel():
     data = request.get_json() or {}
@@ -161,6 +162,7 @@ def api_add_channel():
 
     return jsonify({'status': 'ok'})
 
+# ቀጥታ በድረ-ገጹ ላይ የክፍያ ማረጋገጫ መቀበያ
 @app.route('/api/submit_payment', methods=['POST'])
 def api_submit_payment():
     data = request.get_json() or {}
@@ -198,6 +200,7 @@ def api_submit_payment():
 
     return jsonify({'status': 'ok'})
 
+# OTP መላኪያ
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
@@ -234,6 +237,7 @@ def send_otp():
         'message': 'Code generated successfully'
     })
 
+# ጥብቅ የ OTP ማረጋገጫ (Wrong ከሆነ ሙሉ በሙሉ ይከለክላል)
 @app.route('/api/verify_otp', methods=['POST'])
 def verify_otp():
     data = request.get_json() or {}
@@ -252,16 +256,17 @@ def verify_otp():
     
     return jsonify({'status': 'error', 'message': 'Invalid verification code (Wrong OTP)'}), 400
 
-# 404 እንዳያመጣ የተረጋጉ ሞዴሎችን የሚጠራ AI ተግባር
+# የጠየቁት Gemini 3.1 Pro (ከነ አስተማማኝ መጠባበቂያ ሞዴሎች ጋር)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return "⚠️ Error: GEMINI_API_KEY is not configured on Render Environment."
+        return "⚠️ Error: GEMINI_API_KEY is not configured on Render Environment Variables."
 
     last_error = ""
     try:
         ai_client = genai.Client(api_key=key.strip())
-        for target_model in ['gemini-2.5-flash', 'gemini-2.0-flash']:
+        # የተጠቃሚውን ጥያቄ በቅድሚያ በ Gemini 3.1 Pro መፈጸም
+        for target_model in ['gemini-3.1-pro-preview', 'gemini-3.8-flash', 'gemini-2.5-flash']:
             try:
                 res = ai_client.models.generate_content(
                     model=target_model,
@@ -284,9 +289,9 @@ def api_ask_ai():
     lang = data.get('lang', 'am')
 
     system_prompt = (
-        f"You are the official assistant for Ethio Telegram Ads catalog. "
-        f"Always reply concisely and clearly in this language code: {lang}. "
-        f"Explain how to select channels, pay via Telebirr/CBE or Crypto/Stars, and publish ads."
+        f"You are the official smart AI assistant for Ethio Telegram Ads catalog running on Gemini 3.1 Pro. "
+        f"You must strictly and fluently reply in this language: {lang}. "
+        f"Answer clearly and concisely about advertising on Telegram, channel listing, local and crypto payments."
     )
     answer = call_gemini_models(system_prompt, query)
     return jsonify({'reply': answer})
@@ -341,7 +346,7 @@ def set_lang_handler(call):
 
 def generate_ai_response(user_id, question_text):
     current_l = user_lang.get(user_id, "am")
-    system_prompt = f"You are the official smart AI assistant for Ethio Telegram Ads. Respond concisely in: {current_l}."
+    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.1 Pro for Ethio Telegram Ads. Respond concisely in: {current_l}."
     return call_gemini_models(system_prompt, question_text)
 
 @bot.message_handler(commands=['ask'])
