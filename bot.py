@@ -1,10 +1,9 @@
 import os
 import sqlite3
-import threading
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 import telebot
-from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
+from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton, Update
 
 app = Flask(__name__)
 CORS(app)
@@ -15,8 +14,10 @@ CBE_ACCOUNT = "1000785625556"
 TELEBIRR_NUM = "0927943402"
 ABYSSINIA_ACCOUNT = "218988407"
 ACCOUNT_NAME = "Wo..."
+RENDER_URL = "https://ethio-ad-bot-wz6h.onrender.com"
 
-bot = telebot.TeleBot(BOT_TOKEN)
+# telebot ያለ ፖሊንግ በዌብሁክ ይሰራል
+bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
 DURATION_OPTIONS = {
     "24h": {"label": "24 ሰዓት (1 ቀን)", "extra": 0},
@@ -52,6 +53,7 @@ def init_db():
 
 init_db()
 
+# ድረ-ገጹ ቻናሎችን የሚያገኝበት API
 @app.route('/api/channels', methods=['GET'])
 def get_channels():
     conn = get_db_connection()
@@ -59,12 +61,31 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
+# Cron-job የሚጎበኘው ገጽ
 @app.route('/')
 def home():
-    return "Ethio Ad Bot is Running Live!"
+    return "Ethio Ad Bot is Running Fast & Live!", 200
 
+# ቴሌግራም መልእክቶችን በቅጽበት የሚቀበልበት የ Webhook መስመር
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    if request.headers.get('content-type') == 'application/json':
+        json_string = request.get_data().decode('utf-8')
+        update = Update.de_json(json_string)
+        bot.process_new_updates([update])
+        return '', 200
+    return 'Forbidden', 403
+
+# /cancel ትዕዛዝ
+@bot.message_handler(commands=['cancel'])
+def cancel_action(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
+    bot.reply_to(message, "የነበረው ሂደት ተሰርዟል። አዲስ ትዕዛዝ ለመጀመር /start፣ /register ወይም /buy_ad ይጠቀሙ።")
+
+# /start ትዕዛዝ
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     args = message.text.split()
     if len(args) > 1 and args[1].startswith("buy_"):
         try:
@@ -78,6 +99,7 @@ def send_welcome(message):
         "እንኳን ደህና መጡ! 📢\n\n"
         "• ቻናልዎን ለማስመዝገብ፦ /register\n"
         "• ማስታወቂያ ለማዘዝ፦ /buy_ad\n"
+        "• የነበረውን ለመሰረዝ፦ /cancel\n"
         "• ሙሉ ዝርዝር በዌብሳይት ለመመልከት ከታች ያለውን ቁልፍ ይጠቀሙ።"
     )
     bot.reply_to(message, text)
@@ -85,20 +107,27 @@ def send_welcome(message):
 # ----------------- ቻናል ምዝገባ -----------------
 @bot.message_handler(commands=['register'])
 def start_register(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     msg = bot.reply_to(message, "እባክዎ የቻናልዎን ስም ያስገቡ (ለምሳሌ፦ MR ODDS):")
     bot.register_next_step_handler(msg, process_channel_name)
 
 def process_channel_name(message):
+    if message.text and message.text.startswith('/'):
+        return
     channel_name = message.text
     msg = bot.reply_to(message, "የቻናሉን ሊንክ ያስገቡ (ለምሳሌ፦ https://t.me/MRBENJA12):")
     bot.register_next_step_handler(msg, process_channel_link, channel_name)
 
 def process_channel_link(message, channel_name):
+    if message.text and message.text.startswith('/'):
+        return
     channel_link = message.text
     msg = bot.reply_to(message, "የሚፈልጉትን የመነሻ (የ24 ሰዓት) ዋጋ በብር ብቻ ያስገቡ (ለምሳሌ፦ 1000):")
     bot.register_next_step_handler(msg, process_price, channel_name, channel_link)
 
 def process_price(message, channel_name, channel_link):
+    if message.text and message.text.startswith('/'):
+        return
     try:
         base_price = int(message.text.strip())
         final_price = base_price + 200
@@ -125,6 +154,7 @@ def process_price(message, channel_name, channel_link):
 # ----------------- ማስታወቂያ ማዘዝ -----------------
 @bot.message_handler(commands=['buy_ad'])
 def buy_ad_start(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     conn = get_db_connection()
     channels = conn.execute('SELECT * FROM channels').fetchall()
     conn.close()
@@ -255,10 +285,9 @@ def handle_admin_action(call):
         bot.send_message(customer_id, "❌ ክፍያዎ አልተረጋገጠም ወይም ውድቅ ተደርጓል። እባክዎ ትክክለኛውን ደረሰኝ በድጋሚ ይላኩ።")
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🔴 [ውድቅ ተደርጓል]")
 
-def run_bot():
-    bot.infinity_polling()
-
 if __name__ == '__main__':
-    threading.Thread(target=run_bot, daemon=True).start()
+    # የቆየውን webhook አስወግዶ አዲሱን በቀጥታ ከ Render ጋር ማገናኘት
+    bot.remove_webhook()
+    bot.set_webhook(url=f"{RENDER_URL}/webhook")
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
