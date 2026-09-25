@@ -117,6 +117,37 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
+# DIRECT WEB CHANNEL REGISTRATION
+@app.route('/api/add_channel', methods=['POST'])
+def api_add_channel():
+    data = request.get_json() or {}
+    ch_name = data.get('channel_name', '').strip()
+    ch_link = data.get('channel_link', '').strip()
+    try:
+        base_price = int(data.get('base_price', 0))
+    except:
+        return jsonify({'status': 'error', 'message': 'Invalid price'}), 400
+
+    if not ch_name or not ch_link or base_price <= 0:
+        return jsonify({'status': 'error', 'message': 'All fields are required'}), 400
+
+    final_price = base_price + 200
+
+    conn = get_db_connection()
+    conn.execute('''
+        INSERT INTO channels (user_id, channel_name, channel_link, base_price, final_price)
+        VALUES (?, ?, ?, ?, ?)
+    ''', (ADMIN_ID, ch_name, ch_link, base_price, final_price))
+    conn.commit()
+    conn.close()
+
+    try:
+        bot.send_message(ADMIN_ID, f"📢 *New Channel Added via Web!*\nName: {ch_name}\nLink: {ch_link}\nPrice: {final_price} ETB", parse_mode="Markdown")
+    except:
+        pass
+
+    return jsonify({'status': 'ok'})
+
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
@@ -171,6 +202,7 @@ def verify_otp():
     
     return jsonify({'status': 'error', 'message': 'Invalid code'}), 400
 
+# PREFERRED GEMINI 3.8 FLASH WITH SEQUENTIAL FALLBACKS
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
@@ -179,7 +211,7 @@ def call_gemini_models(system_prompt, question_text):
     last_error = ""
     try:
         ai_client = genai.Client(api_key=key.strip())
-        for target_model in ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-2.0-flash']:
+        for target_model in ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-1.5-flash']:
             try:
                 res = ai_client.models.generate_content(
                     model=target_model,
