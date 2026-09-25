@@ -35,7 +35,7 @@ bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
 LANG_STRINGS = {
     "en": {
-        "welcome": "Welcome to Ads Galaxy! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
+        "welcome": "Welcome to ethio-ad-bot! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
         "lang_set": "Language switched to English.",
         "enter_ch_name": "Enter channel name:",
         "enter_ch_link": "Enter channel link:",
@@ -46,7 +46,7 @@ LANG_STRINGS = {
         "posted": "🎉 Ad published to {channel}!"
     },
     "am": {
-        "welcome": "እንኳን ደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
+        "welcome": "እንኳን ወደ ethio-ad-bot በደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
         "lang_set": "ቋንቋው ወደ አማርኛ ተቀይሯል።",
         "enter_ch_name": "እባክዎ የቻናልዎን ስም ያስገቡ:",
         "enter_ch_link": "የቻናሉን ሊንክ ያስገቡ:",
@@ -179,8 +179,11 @@ def api_submit_payment():
     conn.commit()
     conn.close()
 
+    loc_label = "🇪🇹 ከኢትዮጵያ (Local)" if loc == 'local' else "🌍 ከውጭ ሀገር (Abroad - In USD)"
+
     admin_msg = (
-        f"💳 *New Order & Payment!*\n\n"
+        f"💳 *New Order & Payment on ethio-ad-bot!*\n\n"
+        f"📍 Location: {loc_label}\n"
         f"📢 Channel: {ch_name} ({ch_link})\n"
         f"⏳ Duration: {duration}\n"
         f"💰 Total Amount: *{total}*\n"
@@ -208,8 +211,8 @@ def send_otp():
 
     if "@" in contact and SMTP_EMAIL and SMTP_PASSWORD:
         try:
-            msg = MIMEText(f"Your Ads Galaxy Verification Code is: {otp_code}")
-            msg['Subject'] = "Ads Galaxy Verification Code"
+            msg = MIMEText(f"Your ethio-ad-bot Verification Code is: {otp_code}")
+            msg['Subject'] = "ethio-ad-bot Verification Code"
             msg['From'] = SMTP_EMAIL
             msg['To'] = contact
             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
@@ -248,7 +251,6 @@ def verify_otp():
 
     return jsonify({'status': 'error', 'message': 'Wrong OTP'}), 400
 
-# GEMINI 3.8 FLASH WITH INTERACTIONS API (NO MORE 404)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
@@ -257,7 +259,6 @@ def call_gemini_models(system_prompt, question_text):
     try:
         ai_client = genai.Client(api_key=key.strip())
         
-        # 1. First attempt: Official Interactions API with gemini-3.8-flash
         try:
             interaction = ai_client.interactions.create(
                 model="gemini-3.8-flash",
@@ -265,10 +266,9 @@ def call_gemini_models(system_prompt, question_text):
             )
             if hasattr(interaction, 'output_text') and interaction.output_text:
                 return interaction.output_text
-        except Exception as e_interact:
+        except Exception:
             pass
 
-        # 2. Second attempt: generate_content with gemini-3.8-flash
         try:
             res = ai_client.models.generate_content(
                 model="gemini-3.8-flash",
@@ -276,10 +276,9 @@ def call_gemini_models(system_prompt, question_text):
             )
             if res and res.text:
                 return res.text
-        except Exception as e_gen:
+        except Exception:
             pass
 
-        # 3. Third attempt fallback
         res = ai_client.models.generate_content(
             model="gemini-2.5-flash",
             contents=f"{system_prompt}\n\nUser Question: {question_text}"
@@ -298,8 +297,10 @@ def api_ask_ai():
     query = data.get('query', '')
     lang = data.get('lang', 'am')
 
+    # እዚህ ላይ ስሙ ethio-ad-bot እንዲሆን ተደርጓል
     system_prompt = (
-        f"You are the official smart AI assistant for Ads Galaxy running on Gemini 3.8. "
+        f"You are the official smart AI assistant for ethio-ad-bot running on Gemini 3.8. "
+        f"Introduce yourself as 'ethio-ad-bot AI Assistant' and never mention 'Ads Galaxy'. "
         f"You must strictly reply in this language: {lang}. "
         f"Answer clearly and concisely about Telegram channels, ad booking, and monetization."
     )
@@ -356,7 +357,7 @@ def set_lang_handler(call):
 
 def generate_ai_response(user_id, question_text):
     current_l = user_lang.get(user_id, "am")
-    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.8 for Ads Galaxy. Respond concisely in: {current_l}."
+    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.8 for ethio-ad-bot. Respond concisely in: {current_l}."
     return call_gemini_models(system_prompt, question_text)
 
 @bot.message_handler(commands=['ask'])
