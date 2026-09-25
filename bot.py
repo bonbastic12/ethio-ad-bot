@@ -9,7 +9,6 @@ from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 app = Flask(__name__)
 CORS(app)
 
-# የቦት እና የአድሚን መረጃዎች
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 ADMIN_ID = 6179388927
 CBE_ACCOUNT = "1000785625556"
@@ -19,7 +18,6 @@ ACCOUNT_NAME = "Wo..."
 
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# የቆይታ ጊዜ እና የሚጨመረው ዋጋ
 DURATION_OPTIONS = {
     "24h": {"label": "24 ሰዓት (1 ቀን)", "extra": 0},
     "48h": {"label": "48 ሰዓት (2 ቀናት)", "extra": 300},
@@ -32,7 +30,7 @@ DURATION_OPTIONS = {
 user_orders = {}
 
 def get_db_connection():
-    conn = sqlite3.connect('ads.db')
+    conn = sqlite3.connect('ads.db', check_same_thread=False)
     conn.row_factory = sqlite3.Row
     return conn
 
@@ -65,7 +63,6 @@ def get_channels():
 def home():
     return "Ethio Ad Bot is Running Live!"
 
-# /start ትዕዛዝ
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     args = message.text.split()
@@ -133,7 +130,7 @@ def buy_ad_start(message):
     conn.close()
 
     if not channels:
-        bot.reply_to(message, "❌ በአሁኑ ሰዓት የተመዘገበ ቻናል የለም።")
+        bot.reply_to(message, "❌ በአሁኑ ሰዓት የተመዘገበ ቻናል የለም። እባክዎ አስቀድመው በ /register ይመዝግቡ።")
         return
 
     markup = InlineKeyboardMarkup()
@@ -145,9 +142,9 @@ def buy_ad_start(message):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('selch_'))
 def handle_channel_select(call):
+    bot.answer_callback_query(call.id)
     channel_id = int(call.data.split('_')[1])
     prompt_duration_selection(call.message.chat.id, channel_id)
-    bot.answer_callback_query(call.id)
 
 def prompt_duration_selection(chat_id, channel_id):
     conn = get_db_connection()
@@ -155,7 +152,7 @@ def prompt_duration_selection(chat_id, channel_id):
     conn.close()
 
     if not ch:
-        bot.send_message(chat_id, "ቻናሉ አልተገኘም!")
+        bot.send_message(chat_id, "ቻናሉ አልተገኘም! እባክዎ እንደገና /buy_ad ብለው ይሞክሩ።")
         return
 
     markup = InlineKeyboardMarkup()
@@ -168,6 +165,7 @@ def prompt_duration_selection(chat_id, channel_id):
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('dur_'))
 def handle_duration_select(call):
+    bot.answer_callback_query(call.id)
     _, ch_id, dur_key = call.data.split('_')
     ch_id = int(ch_id)
 
@@ -176,7 +174,7 @@ def handle_duration_select(call):
     conn.close()
 
     if not ch:
-        bot.answer_callback_query(call.id, "ስህተት ተፈጥሯል!")
+        bot.send_message(call.message.chat.id, "ቻናሉ አልተገኘም! እባክዎ እንደገና /buy_ad ብለው ይሞክሩ።")
         return
 
     duration_info = DURATION_OPTIONS[dur_key]
@@ -205,9 +203,7 @@ def handle_duration_select(call):
         f"⚠️ *ማሳሰቢያ፦* ክፍያውን ከፈጸሙ በኋላ የደረሰኙን ስክሪንሾት (Screenshot/ፎቶ) ለዚህ ቦት ይላኩ።"
     )
     bot.send_message(call.message.chat.id, msg_text, parse_mode="Markdown")
-    bot.answer_callback_query(call.id)
 
-# ደረሰኝ ሲላክ
 @bot.message_handler(content_types=['photo'])
 def handle_receipt(message):
     user_id = message.chat.id
@@ -236,13 +232,13 @@ def handle_receipt(message):
     bot.send_photo(ADMIN_ID, photo_id, caption=admin_caption, reply_markup=admin_markup, parse_mode="Markdown")
     bot.reply_to(message, "✅ ደረሰኝዎ ደርሶናል! ክፍያው በአድሚን ተረጋግጦ በቅርቡ ይጸድቃል።")
 
-# አድሚን ሲያጸድቅ ወይም ሲሰርዝ
 @bot.callback_query_handler(func=lambda call: call.data.startswith(('app_', 'rej_')))
 def handle_admin_action(call):
     if call.from_user.id != ADMIN_ID:
         bot.answer_callback_query(call.id, "ይህንን ማድረግ የሚችሉት አድሚኑ ብቻ ናቸው!")
         return
 
+    bot.answer_callback_query(call.id, "ተጠናቋል!")
     action, customer_id = call.data.split('_')
     customer_id = int(customer_id)
     order = user_orders.get(customer_id)
@@ -258,8 +254,6 @@ def handle_admin_action(call):
     else:
         bot.send_message(customer_id, "❌ ክፍያዎ አልተረጋገጠም ወይም ውድቅ ተደርጓል። እባክዎ ትክክለኛውን ደረሰኝ በድጋሚ ይላኩ።")
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🔴 [ውድቅ ተደርጓል]")
-
-    bot.answer_callback_query(call.id, "ተጠናቋል!")
 
 def run_bot():
     bot.infinity_polling()
