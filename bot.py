@@ -142,7 +142,6 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# የተጠቃሚውን ቀሪ ሂሳብ የማምጫ ኤፒአይ
 @app.route('/api/user_info', methods=['GET'])
 def get_user_info():
     contact = request.args.get('contact', '').strip()
@@ -183,6 +182,7 @@ def api_add_channel():
 
     return jsonify({'status': 'ok'})
 
+# ከድረ-ገጽ የመጣን ክፍያ ከአዝራሮች (Approve/Reject Buttons) ጋር ለአድሚን መላኪያ
 @app.route('/api/submit_payment', methods=['POST'])
 def api_submit_payment():
     data = request.get_json() or {}
@@ -195,30 +195,87 @@ def api_submit_payment():
     ad_content = data.get('ad_content', '')
 
     conn = get_db_connection()
-    conn.execute('''
+    cursor = conn.cursor()
+    cursor.execute('''
         INSERT INTO orders (channel_name, channel_link, total_price, location, duration, tx_ref, ad_content)
         VALUES (?, ?, ?, ?, ?, ?, ?)
     ''', (ch_name, ch_link, total, loc, duration, tx_ref, ad_content))
+    order_id = cursor.lastrowid
     conn.commit()
     conn.close()
 
     loc_label = "🇪🇹 ከኢትዮጵያ (Local)" if loc == 'local' else "🌍 ከውጭ ሀገር (Abroad)"
 
     admin_msg = (
-        f"💳 *New Ad Order Received!*\n\n"
+        f"💳 *New Ad Order Received!* (Order #{order_id})\n\n"
         f"📍 Location: {loc_label}\n"
         f"📢 Channel: {ch_name} ({ch_link})\n"
         f"⏳ Duration: {duration}\n"
         f"💰 Total Amount: *{total}*\n"
-        f"🧾 Reference / TxID: `{tx_ref}`\n\n"
-        f"📝 Ad Content:\n{ad_content}"
+        f"🧾 Reference / TxID:\n`{tx_ref}`\n\n"
+        f"📝 *Ad Content:*\n{ad_content}"
     )
+
+    markup = InlineKeyboardMarkup()
+    markup.add(
+        InlineKeyboardButton("✅ Approve & Post", callback_data=f"web_app_{order_id}"),
+        InlineKeyboardButton("❌ Reject", callback_data=f"web_rej_{order_id}")
+    )
+
     try:
-        bot.send_message(ADMIN_ID, admin_msg, parse_mode="Markdown")
-    except:
+        bot.send_message(ADMIN_ID, admin_msg, reply_markup=markup, parse_mode="Markdown")
+    except Exception as e:
         pass
 
     return jsonify({'status': 'ok'})
+
+# አድሚኑ Approve ሲጫን ቻናሉ ላይ በቀጥታ የሚለጥፍ ተግባር
+@bot.callback_query_handler(func=lambda call: call.data.startswith(('web_app_', 'web_rej_')))
+def handle_web_order_approval(call):
+    if call.from_user.id != ADMIN_ID:
+        return
+
+    action, order_id = call.data.split('_')[1], int(call.data.split('_')[2])
+    bot.answer_callback_query(call.id, "እየተስተናገደ ነው...")
+
+    conn = get_db_connection()
+    order = conn.execute('SELECT * FROM orders WHERE id = ?', (order_id,)).fetchone()
+
+    if not order:
+        bot.send_message(ADMIN_ID, "❌ ማዘዣው አልተገኘም።")
+        conn.close()
+        return
+
+    if action == "app":
+        target_channel = extract_channel_handle(order['channel_link'])
+        ad_text = order['ad_content']
+
+        try:
+            bot.send_message(target_channel, ad_text)
+            conn.execute("UPDATE orders SET status = 'approved' WHERE id = ?", (order_id,))
+            conn.commit()
+            bot.edit_message_text(
+                chat_id=call.message.chat.id,
+                message_id=call.message.message_id,
+                text=call.message.text + f"\n\n🟢 *[APPROVED & POSTED TO {target_channel}]*",
+                parse_mode="Markdown"
+            )
+        except Exception as e:
+            bot.send_message(
+                ADMIN_ID,
+                f"⚠️ ቦቱ በ {target_channel} ላይ መለጠፍ አልቻለም። ቦቱን በቻናሉ ላይ **Admin (Post Messages ፍቃድ ያለው)** ማድረጎን ያረጋግጡ። ስህተት፦ {str(e)}"
+            )
+    else:
+        conn.execute("UPDATE orders SET status = 'rejected' WHERE id = ?", (order_id,))
+        conn.commit()
+        bot.edit_message_text(
+            chat_id=call.message.chat.id,
+            message_id=call.message.message_id,
+            text=call.message.text + "\n\n🔴 *[REJECTED]*",
+            parse_mode="Markdown"
+        )
+
+    conn.close()
 
 # ያለ አድሚን ፍቃድ በቀጥታ ከሂሳብ ቀንሶ ክፍያ የመፈጸሚያ ኤፒአይ (Auto-Payout)
 @app.route('/api/request_withdraw', methods=['POST'])
@@ -237,8 +294,6 @@ def api_request_withdraw():
 
     conn = get_db_connection()
     user = conn.execute('SELECT * FROM users WHERE contact = ?', (contact,)).fetchone()
-
-    # ተጠቃሚው ካልተመዘገበ በነባሪ 0.50 ዶላር ይሰጠዋል
     current_bal = float(user['balance']) if user and user['balance'] is not None else 0.50
 
     if current_bal < amount:
