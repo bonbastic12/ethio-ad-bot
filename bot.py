@@ -97,6 +97,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             contact TEXT UNIQUE,
+            balance REAL DEFAULT 0.50,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -111,6 +112,17 @@ def init_db():
             tx_ref TEXT,
             ad_content TEXT,
             status TEXT DEFAULT 'pending',
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS payouts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            contact TEXT,
+            amount REAL,
+            method TEXT,
+            account TEXT,
+            status TEXT DEFAULT 'completed',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -129,6 +141,17 @@ def get_channels():
     channels = conn.execute('SELECT * FROM channels').fetchall()
     conn.close()
     return jsonify([dict(row) for row in channels])
+
+# የተጠቃሚውን ቀሪ ሂሳብ የማምጫ ኤፒአይ
+@app.route('/api/user_info', methods=['GET'])
+def get_user_info():
+    contact = request.args.get('contact', '').strip()
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE contact = ?', (contact,)).fetchone()
+    conn.close()
+    if user:
+        return jsonify({'status': 'ok', 'balance': float(user['balance'] or 0)})
+    return jsonify({'status': 'ok', 'balance': 0.50})
 
 @app.route('/api/add_channel', methods=['POST'])
 def api_add_channel():
@@ -154,7 +177,7 @@ def api_add_channel():
     conn.close()
 
     try:
-        bot.send_message(ADMIN_ID, f"📢 *New Channel Added via Web!*\nName: {ch_name}\nLink: {ch_link}\nPrice: {final_price} ETB", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, f"📢 *New Channel Added!*\nName: {ch_name}\nLink: {ch_link}\nPrice: {final_price} ETB", parse_mode="Markdown")
     except:
         pass
 
@@ -179,15 +202,15 @@ def api_submit_payment():
     conn.commit()
     conn.close()
 
-    loc_label = "🇪🇹 ከኢትዮጵያ (Local)" if loc == 'local' else "🌍 ከውጭ ሀገር (Abroad - In USD)"
+    loc_label = "🇪🇹 ከኢትዮጵያ (Local)" if loc == 'local' else "🌍 ከውጭ ሀገር (Abroad)"
 
     admin_msg = (
-        f"💳 *New Order & Payment on ethio-ad-bot!*\n\n"
+        f"💳 *New Ad Order Received!*\n\n"
         f"📍 Location: {loc_label}\n"
         f"📢 Channel: {ch_name} ({ch_link})\n"
         f"⏳ Duration: {duration}\n"
         f"💰 Total Amount: *{total}*\n"
-        f"🧾 TxID / Ref: `{tx_ref}`\n\n"
+        f"🧾 Reference / TxID: `{tx_ref}`\n\n"
         f"📝 Ad Content:\n{ad_content}"
     )
     try:
@@ -197,30 +220,59 @@ def api_submit_payment():
 
     return jsonify({'status': 'ok'})
 
-# ገንዘብ ማውጣት ሲጠየቅ ለአድሚኑ በቴሌግራም የሚልክ አዲስ ተግባር
+# ያለ አድሚን ፍቃድ በቀጥታ ከሂሳብ ቀንሶ ክፍያ የመፈጸሚያ ኤፒአይ (Auto-Payout)
 @app.route('/api/request_withdraw', methods=['POST'])
 def api_request_withdraw():
-    data = request.get_json() or {}
-    method = data.get('method', '')
-    account = data.get('account', '')
-    amount = data.get('amount', '')
+    data = request.get_json(silent=True) or {}
+    contact = data.get('contact', '').strip()
+    method = data.get('method', '').strip()
+    account = data.get('account', '').strip()
+    try:
+        amount = float(data.get('amount', 0))
+    except (ValueError, TypeError):
+        return jsonify({'status': 'error', 'message': 'ትክክለኛ ያልሆነ የገንዘብ መጠን'}), 400
 
-    if not account or not amount:
-        return jsonify({'status': 'error', 'message': 'Account and amount are required'}), 400
+    if not account or amount <= 0:
+        return jsonify({'status': 'error', 'message': 'እባክዎ ትክክለኛ የሂሳብ ቁጥር እና መጠን ያስገቡ'}), 400
+
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE contact = ?', (contact,)).fetchone()
+
+    # ተጠቃሚው ካልተመዘገበ በነባሪ 0.50 ዶላር ይሰጠዋል
+    current_bal = float(user['balance']) if user and user['balance'] is not None else 0.50
+
+    if current_bal < amount:
+        conn.close()
+        return jsonify({'status': 'error', 'message': 'በቂ ያልሆነ ቀሪ ሂሳብ (Insufficient balance)'}), 400
+
+    new_bal = current_bal - amount
+
+    if user:
+        conn.execute('UPDATE users SET balance = ? WHERE contact = ?', (new_bal, contact))
+    else:
+        conn.execute('INSERT INTO users (contact, balance) VALUES (?, ?)', (contact, new_bal))
+
+    conn.execute('''
+        INSERT INTO payouts (contact, amount, method, account, status)
+        VALUES (?, ?, ?, ?, 'completed')
+    ''', (contact, amount, method, account))
+    conn.commit()
+    conn.close()
 
     admin_msg = (
-        f"🚨 *New Withdrawal Request!*\n\n"
+        f"⚡ *Auto-Withdrawal Executed!*\n\n"
+        f"👤 User: `{contact}`\n"
         f"💵 Amount: *${amount} USD*\n"
         f"🏦 Method: *{method.upper()}*\n"
-        f"📍 Account / Wallet: `{account}`\n\n"
-        f"እባክዎ ክፍያውን ፈጽመው ለተጠቃሚው ያረጋግጡ።"
+        f"📍 Account / Wallet: `{account}`\n"
+        f"💳 Remaining Balance: *${new_bal:.2f} USD*"
     )
     try:
         bot.send_message(ADMIN_ID, admin_msg, parse_mode="Markdown")
-    except Exception as e:
+    except Exception:
         pass
 
-    return jsonify({'status': 'ok'})
+    return jsonify({'status': 'ok', 'new_balance': new_bal, 'withdrawn': amount})
 
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
@@ -269,7 +321,7 @@ def verify_otp():
     if saved_otp and saved_otp == user_otp:
         del active_otps[contact]
         conn = get_db_connection()
-        conn.execute('INSERT OR IGNORE INTO users (contact) VALUES (?)', (contact,))
+        conn.execute('INSERT OR IGNORE INTO users (contact, balance) VALUES (?, 0.50)', (contact,))
         conn.commit()
         conn.close()
         return jsonify({'status': 'ok'})
@@ -284,7 +336,7 @@ def call_gemini_models(system_prompt, question_text):
 
     try:
         ai_client = genai.Client(api_key=key.strip())
-        
+
         # 1. Interactions API with gemini-3.8-flash
         try:
             interaction = ai_client.interactions.create(
@@ -321,18 +373,21 @@ def call_gemini_models(system_prompt, question_text):
 
 @app.route('/api/ask_ai', methods=['POST'])
 def api_ask_ai():
-    data = request.get_json() or {}
-    query = data.get('query', '')
-    lang = data.get('lang', 'am')
+    try:
+        data = request.get_json(silent=True) or {}
+        query = data.get('query', '')
+        lang = data.get('lang', 'am')
 
-    system_prompt = (
-        f"You are the official smart AI assistant for ethio-ad-bot running on Gemini 3.8 Flash. "
-        f"Introduce yourself as 'ethio-ad-bot AI Assistant'. "
-        f"You must strictly reply in this language: {lang}. "
-        f"Answer clearly and concisely about Telegram channels, ad booking, and monetization."
-    )
-    answer = call_gemini_models(system_prompt, query)
-    return jsonify({'reply': answer})
+        system_prompt = (
+            f"You are the official smart AI assistant for ethio-ad-bot running on Gemini 3.8 Flash. "
+            f"Introduce yourself as 'ethio-ad-bot AI Assistant'. "
+            f"You must strictly reply in this language: {lang}. "
+            f"Answer clearly and concisely about Telegram channels, ad booking, and monetization."
+        )
+        answer = call_gemini_models(system_prompt, query)
+        return jsonify({'reply': answer}), 200
+    except Exception:
+        return jsonify({'reply': "⚠️ የቴክኒክ ችግር አጋጥሟል። እባክዎ ከጥቂት ሰከንዶች በኋላ ይሞክሩ።"}), 200
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
