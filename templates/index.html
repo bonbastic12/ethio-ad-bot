@@ -10,11 +10,13 @@
 
     /* Top Bar & Header */
     header { background: #fff; border-bottom: 1px solid #e1e4e8; padding: 12px 16px; position: sticky; top: 0; z-index: 100; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; }
+    .top-bar { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; gap: 10px; }
     .logo { font-size: 20px; font-weight: 800; color: #0088cc; text-decoration: none; }
+    .nav-actions { display: flex; align-items: center; gap: 10px; }
     
-    /* 15 Language Dropdown */
     .lang-select { padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600; background: #fff; outline: none; cursor: pointer; }
+    .auth-btn { background: #0088cc; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 13px; }
+    .auth-btn:hover { background: #0077b5; }
 
     /* Container */
     .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
@@ -38,8 +40,7 @@
 
     .card-action { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
     .price-tag { font-size: 18px; font-weight: 800; color: #16a34a; }
-    .buy-btn { background: #16a34a; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: 0.2s; }
-    .buy-btn:hover { background: #15803d; }
+    .buy-btn { background: #16a34a; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; border: none; cursor: pointer; }
 
     /* Floating AI Chat */
     .ai-fab { position: fixed; bottom: 25px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.4); z-index: 999; }
@@ -53,6 +54,25 @@
     .chat-input-bar { display: flex; border-top: 1px solid #e2e8f0; padding: 8px; gap: 6px; }
     .chat-input-bar input { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; outline: none; }
     .chat-input-bar button { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+
+    /* Auth Modal Overlay */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center; }
+    .modal-box { background: #fff; width: 92%; max-width: 420px; border-radius: 16px; padding: 24px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.2); position: relative; }
+    .modal-box h2 { font-size: 20px; font-weight: 800; margin-bottom: 8px; text-align: center; }
+    .modal-box p { font-size: 13px; color: #64748b; text-align: center; margin-bottom: 20px; }
+    .google-btn { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; border: 1px solid #cbd5e1; padding: 10px; border-radius: 8px; background: #fff; font-weight: 600; font-size: 14px; cursor: pointer; margin-bottom: 16px; }
+    .divider { display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 12px; margin-bottom: 16px; }
+    .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
+    .divider:not(:empty)::before { margin-right: .5em; }
+    .divider:not(:empty)::after { margin-left: .5em; }
+    
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; font-weight: 700; margin-bottom: 4px; color: #334155; }
+    .form-group select, .form-group input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; font-size: 14px; }
+    .submit-auth-btn { width: 100%; background: #0088cc; color: #fff; border: none; padding: 12px; border-radius: 8px; font-weight: 700; cursor: pointer; margin-top: 8px; }
+    .close-modal-x { position: absolute; top: 16px; right: 18px; cursor: pointer; font-size: 18px; color: #94a3b8; }
+    .otp-inputs { display: flex; justify-content: center; gap: 8px; margin: 15px 0; }
+    .otp-inputs input { width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: bold; border-radius: 8px; border: 1px solid #cbd5e1; }
   </style>
 </head>
 <body>
@@ -60,23 +80,26 @@
   <header>
     <div class="top-bar">
       <a href="/" class="logo">⚡ EthioAd.io</a>
-      <select id="langSwitcher" class="lang-select" onchange="switchLanguage()">
-        <option value="am">🇪🇹 አማርኛ</option>
-        <option value="en">🇬🇧 English</option>
-        <option value="ar">🇸🇦 العربية</option>
-        <option value="fr">🇫🇷 Français</option>
-        <option value="es">🇪🇸 Español</option>
-        <option value="ru">🇷🇺 Русский</option>
-        <option value="pt">🇵🇹 Português</option>
-        <option value="zh">🇨🇳 中文</option>
-        <option value="hi">🇮🇳 हिन्दी</option>
-        <option value="de">🇩🇪 Deutsch</option>
-        <option value="tr">🇹🇷 Türkçe</option>
-        <option value="it">🇮🇹 Italiano</option>
-        <option value="ja">🇯🇵 日本語</option>
-        <option value="ko">🇰🇷 한국어</option>
-        <option value="sw">🇰🇪 Kiswahili</option>
-      </select>
+      <div class="nav-actions">
+        <select id="langSwitcher" class="lang-select" onchange="switchLanguage()">
+          <option value="am">🇪🇹 አማርኛ</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="ar">🇸🇦 العربية</option>
+          <option value="fr">🇫🇷 Français</option>
+          <option value="es">🇪🇸 Español</option>
+          <option value="ru">🇷🇺 Русский</option>
+          <option value="pt">🇵🇹 Português</option>
+          <option value="zh">🇨🇳 中文</option>
+          <option value="hi">🇮🇳 हिन्दी</option>
+          <option value="de">🇩🇪 Deutsch</option>
+          <option value="tr">🇹🇷 Türkçe</option>
+          <option value="it">🇮🇹 Italiano</option>
+          <option value="ja">🇯🇵 日本語</option>
+          <option value="ko">🇰🇷 한국어</option>
+          <option value="sw">🇰🇪 Kiswahili</option>
+        </select>
+        <button class="auth-btn" id="navAuthBtn" onclick="openAuthModal()">Sign In</button>
+      </div>
     </div>
   </header>
 
@@ -92,12 +115,77 @@
     </div>
   </div>
 
+  <!-- Sign In / Sign Up Modal -->
+  <div class="modal-overlay" id="authModal">
+    <div class="modal-box">
+      <span class="close-modal-x" onclick="closeAuthModal()">✕</span>
+
+      <!-- Step 1: Input Identifier -->
+      <div id="authStep1">
+        <h2 id="authHeading">Sign In / Sign Up</h2>
+        <p id="authSub">Select country and enter your email or phone</p>
+
+        <button class="google-btn" onclick="googleAuth()">
+          <img width="18" height="18" src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9zqoA7hOQZs=s48" />
+          Continue with Google
+        </button>
+
+        <div class="divider" id="dividerOr">OR</div>
+
+        <div class="form-group">
+          <label id="lblCountry">Country (ሀገርዎን ይምረጡ)</label>
+          <select id="userCountry">
+            <option value="ET">🇪🇹 Ethiopia (+251)</option>
+            <option value="US">🇺🇸 United States (+1)</option>
+            <option value="AE">🇦🇪 United Arab Emirates (+971)</option>
+            <option value="SA">🇸🇦 Saudi Arabia (+966)</option>
+            <option value="GB">🇬🇧 United Kingdom (+44)</option>
+            <option value="KE">🇰🇪 Kenya (+254)</option>
+            <option value="NG">🇳🇬 Nigeria (+234)</option>
+            <option value="FR">🇫🇷 France (+33)</option>
+            <option value="DE">🇩🇪 Germany (+49)</option>
+            <option value="CN">🇨🇳 China (+86)</option>
+            <option value="IN">🇮🇳 India (+91)</option>
+            <option value="RU">🇷🇺 Russia (+7)</option>
+            <option value="BR">🇧🇷 Brazil (+55)</option>
+            <option value="TR">🇹🇷 Turkey (+90)</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label id="lblContact">Email or Phone Number</label>
+          <input type="text" id="contactInput" placeholder="e.g. 0912345678 or name@example.com" />
+        </div>
+
+        <button class="submit-auth-btn" id="btnSendCode" onclick="sendVerificationCode()">Send 5-Digit Code</button>
+      </div>
+
+      <!-- Step 2: 5 Digit Verification -->
+      <div id="authStep2" style="display: none;">
+        <h2 id="otpHeading">Verification Code</h2>
+        <p id="otpSub">Enter the 5-digit code sent to your contact</p>
+
+        <div class="otp-inputs">
+          <input type="text" maxlength="1" oninput="moveToNext(this, 1)" />
+          <input type="text" maxlength="1" oninput="moveToNext(this, 2)" />
+          <input type="text" maxlength="1" oninput="moveToNext(this, 3)" />
+          <input type="text" maxlength="1" oninput="moveToNext(this, 4)" />
+          <input type="text" maxlength="1" oninput="moveToNext(this, 5)" />
+        </div>
+
+        <button class="submit-auth-btn" id="btnVerify" onclick="verifyCode()">Confirm & Enter</button>
+        <p style="margin-top: 15px; cursor: pointer; color: #0088cc; font-size: 13px;" onclick="resendStep()">Change contact or Resend</p>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Floating AI Assistant -->
   <div class="ai-fab" onclick="toggleChat()" title="AI Assistant">💬</div>
 
   <div class="chat-modal" id="chatModal">
     <div class="chat-header">
-      <span id="aiHeaderTitle">🤖 Gemini AI Assistant</span>
+      <span>🤖 Gemini AI Assistant</span>
       <span class="chat-close" onclick="toggleChat()">✕</span>
     </div>
     <div class="chat-messages" id="chatMessages">
@@ -111,8 +199,9 @@
 
   <script>
     let allChannels = [];
+    let generatedOtp = "";
 
-    // 15 Languages Dictionary (ከታች ያለውን ጽሑፍ ጨምሮ ሙሉ ትርጉም)
+    // 15 Languages Translations
     const translations = {
       am: { 
         title: "የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)", 
@@ -124,7 +213,12 @@
         inputPlaceholder: "ጥያቄዎን ይጻፉ...",
         noChannels: "ምንም የተመዘገበ ቻናል የለም።",
         loading: "ቻናሎች በመጫን ላይ ናቸው...",
-        send: "ላክ"
+        send: "ላክ",
+        auth: "ይግቡ / ይመዝገቡ",
+        authSub: "ሀገርዎን ይምረጡና ኢሜይል ወይም ስልክ ቁጥር ያስገቡ",
+        sendCode: "ባለ 5 ዲጂት ኮድ ላክ",
+        otpHeading: "የማረጋገጫ ኮድ",
+        otpSub: "የተላከውን ባለ 5 ዲጂት ኮድ ያስገቡ"
       },
       en: { 
         title: "Telegram Channels Catalog", 
@@ -136,164 +230,26 @@
         inputPlaceholder: "Type your question...",
         noChannels: "No channels registered yet.",
         loading: "Loading channels...",
-        send: "Send"
+        send: "Send",
+        auth: "Sign In / Sign Up",
+        authSub: "Select country and enter your email or phone",
+        sendCode: "Send 5-Digit Code",
+        otpHeading: "Verification Code",
+        otpSub: "Enter the 5-digit code sent to your contact"
       },
-      ar: { 
-        title: "دليل قنوات التيليجرام", 
-        searchPlaceholder: "ابحث عن القنوات...", 
-        views: "المشاهدات", 
-        priceFrom: "يبدأ من:", 
-        buy: "شراء إعلان ➔", 
-        aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.", 
-        inputPlaceholder: "اكتب سؤالك...",
-        noChannels: "لا توجد قنوات مسجلة بعد.",
-        loading: "جاري تحميل القنوات...",
-        send: "إرسال"
-      },
-      fr: { 
-        title: "Catalogue des chaînes Telegram", 
-        searchPlaceholder: "Rechercher des chaînes...", 
-        views: "Vues", 
-        priceFrom: "À partir de:", 
-        buy: "Acheter pub ➔", 
-        aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.", 
-        inputPlaceholder: "Écrivez votre message...",
-        noChannels: "Aucune chaîne enregistrée pour le moment.",
-        loading: "Chargement des chaînes...",
-        send: "Envoyer"
-      },
-      es: { 
-        title: "Catálogo de Canales de Telegram", 
-        searchPlaceholder: "Buscar canales...", 
-        views: "Vistas", 
-        priceFrom: "Desde:", 
-        buy: "Comprar Anuncio ➔", 
-        aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o compra de anuncios.", 
-        inputPlaceholder: "Escribe tu pregunta...",
-        noChannels: "Aún no hay canales registrados.",
-        loading: "Cargando canales...",
-        send: "Enviar"
-      },
-      ru: { 
-        title: "Каталог Telegram-каналов", 
-        searchPlaceholder: "Поиск каналов...", 
-        views: "Просмотры", 
-        priceFrom: "От:", 
-        buy: "Купить рекламу ➔", 
-        aiWelcome: "Здравствуйте! Задайте вопрос об авторах, каналах или рекламе.", 
-        inputPlaceholder: "Введите ваш вопрос...",
-        noChannels: "Пока нет зарегистрированных каналов.",
-        loading: "Загрузка каналов...",
-        send: "Отправить"
-      },
-      pt: { 
-        title: "Catálogo de Canais do Telegram", 
-        searchPlaceholder: "Pesquisar canais...", 
-        views: "Visualizações", 
-        priceFrom: "A partir de:", 
-        buy: "Comprar Anúncio ➔", 
-        aiWelcome: "Olá! Pergunte qualquer dúvida sobre os canais ou anúncios.", 
-        inputPlaceholder: "Digite sua pergunta...",
-        noChannels: "Nenhum canal registrado ainda.",
-        loading: "Carregando canais...",
-        send: "Enviar"
-      },
-      zh: { 
-        title: "Telegram 频道目录", 
-        searchPlaceholder: "搜索频道...", 
-        views: "浏览量", 
-        priceFrom: "起价：", 
-        buy: "购买广告 ➔", 
-        aiWelcome: "您好！有关频道或投放广告的任何问题，随时向我提问。", 
-        inputPlaceholder: "输入您的问题...",
-        noChannels: "暂无已注册的频道。",
-        loading: "正在加载频道...",
-        send: "发送"
-      },
-      hi: { 
-        title: "टेलीग्राम चैनल कैटलॉग", 
-        searchPlaceholder: "चैनल खोजें...", 
-        views: "देखे गए", 
-        priceFrom: "प्रारंभिक मूल्य:", 
-        buy: "विज्ञापन खरीदें ➔", 
-        aiWelcome: "नमस्ते! चैनलों या विज्ञापन खरीदने के बारे में कोई भी प्रश्न पूछें।", 
-        inputPlaceholder: "अपना प्रश्न लिखें...",
-        noChannels: "अभी तक कोई चैनल पंजीकृत नहीं है।",
-        loading: "चैनल लोड हो रहे हैं...",
-        send: "भेजें"
-      },
-      de: { 
-        title: "Telegram-Kanal-Katalog", 
-        searchPlaceholder: "Kanäle durchsuchen...", 
-        views: "Aufrufe", 
-        priceFrom: "Ab:", 
-        buy: "Werbung kaufen ➔", 
-        aiWelcome: "Hallo! Fragen Sie unseren KI-Assistenten nach Kanälen oder Werbung.", 
-        inputPlaceholder: "Geben Sie Ihre Frage ein...",
-        noChannels: "Noch keine Kanäle registriert.",
-        loading: "Kanäle werden geladen...",
-        send: "Senden"
-      },
-      tr: { 
-        title: "Telegram Kanal Kataloğu", 
-        searchPlaceholder: "Kanal ara...", 
-        views: "Görüntüleme", 
-        priceFrom: "Başlangıç:", 
-        buy: "Reklam Satın Al ➔", 
-        aiWelcome: "Merhaba! Kanallar veya reklam satın alma ile ilgili sorularınızı sorun.", 
-        inputPlaceholder: "Sorunuzu yazın...",
-        noChannels: "Henüz kayıtlı kanal bulunmamaktadır.",
-        loading: "Kanallar yükleniyor...",
-        send: "Gönder"
-      },
-      it: { 
-        title: "Catalogo Canali Telegram", 
-        searchPlaceholder: "Cerca canali...", 
-        views: "Visualizzazioni", 
-        priceFrom: "A partire da:", 
-        buy: "Acquista annuncio ➔", 
-        aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali o sull'acquisto di annunci.", 
-        inputPlaceholder: "Scrivi la tua domanda...",
-        noChannels: "Nessun canale registrato al momento.",
-        loading: "Caricamento canali...",
-        send: "Invia"
-      },
-      ja: { 
-        title: "Telegram チャンネルカタログ", 
-        searchPlaceholder: "チャンネルを検索...", 
-        views: "閲覧数", 
-        priceFrom: "価格：", 
-        buy: "広告を購入 ➔", 
-        aiWelcome: "こんにちは！チャンネルや広告購入について何でもお尋ねください。", 
-        inputPlaceholder: "質問を入力...",
-        noChannels: "登録されているチャンネルはまだありません。",
-        loading: "チャンネルを読み込み中...",
-        send: "送信"
-      },
-      ko: { 
-        title: "텔레그램 채널 카탈로그", 
-        searchPlaceholder: "채널 검색...", 
-        views: "조회수", 
-        priceFrom: "시작 가격:", 
-        buy: "광고 구매 ➔", 
-        aiWelcome: "안녕하세요! 채널 등록이나 광고 구매에 관해 질문해 주세요.", 
-        inputPlaceholder: "질문을 입력하세요...",
-        noChannels: "아직 등록된 채널이 없습니다.",
-        loading: "채널 로딩 중...",
-        send: "보내기"
-      },
-      sw: { 
-        title: "Orodha ya Idhaa za Telegram", 
-        searchPlaceholder: "Tafuta idhaa...", 
-        views: "Watazamaji", 
-        priceFrom: "Kuanzia:", 
-        buy: "Nunua Tangazo ➔", 
-        aiWelcome: "Jambo! Uliza swali lolote kuhusu idhaa au matangazo.", 
-        inputPlaceholder: "Andika swali lako...",
-        noChannels: "Hakuna idhaa zilizosajiliwa bado.",
-        loading: "Inapakia idhaa...",
-        send: "Tuma"
-      }
+      ar: { title: "دليل قنوات التيليجرام", searchPlaceholder: "ابحث عن القنوات...", views: "المشاهدات", priceFrom: "يبدأ من:", buy: "شراء إعلان ➔", aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.", inputPlaceholder: "اكتب سؤالك...", noChannels: "لا توجد قنوات مسجلة بعد.", loading: "جاري تحميل القنوات...", send: "إرسال", auth: "تسجيل الدخول", authSub: "اختر دولتك وأدخل بريدك أو رقمك", sendCode: "أرسل رمز التحقق (5 أرقام)", otpHeading: "رمز التأكيد", otpSub: "أدخل الرمز المكون من 5 أرقام" },
+      fr: { title: "Catalogue des chaînes Telegram", searchPlaceholder: "Rechercher des chaînes...", views: "Vues", priceFrom: "À partir de:", buy: "Acheter pub ➔", aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.", inputPlaceholder: "Écrivez votre message...", noChannels: "Aucune chaîne enregistrée.", loading: "Chargement des chaînes...", send: "Envoyer", auth: "Connexion / Inscription", authSub: "Sélectionnez le pays et votre email/téléphone", sendCode: "Envoyer le code à 5 chiffres", otpHeading: "Code de vérification", otpSub: "Entrez le code à 5 chiffres" },
+      es: { title: "Catálogo de Canales de Telegram", searchPlaceholder: "Buscar canales...", views: "Vistas", priceFrom: "Desde:", buy: "Comprar Anuncio ➔", aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales.", inputPlaceholder: "Escribe tu pregunta...", noChannels: "Aún no hay canales registrados.", loading: "Cargando canales...", send: "Enviar", auth: "Iniciar Sesión", authSub: "Seleccione país y correo o teléfono", sendCode: "Enviar código de 5 dígitos", otpHeading: "Código de Verificación", otpSub: "Ingrese el código de 5 dígitos" },
+      ru: { title: "Каталог Telegram-каналов", searchPlaceholder: "Поиск каналов...", views: "Просмотры", priceFrom: "От:", buy: "Купить рекламу ➔", aiWelcome: "Здравствуйте! Задайте вопрос об авторах.", inputPlaceholder: "Введите вопрос...", noChannels: "Пока нет каналов.", loading: "Загрузка каналов...", send: "Отправить", auth: "Войти / Регистрация", authSub: "Выберите страну и контакт", sendCode: "Отправить 5-значный код", otpHeading: "Код подтверждения", otpSub: "Введите 5-значный код" },
+      pt: { title: "Catálogo de Canais do Telegram", searchPlaceholder: "Pesquisar canais...", views: "Visualizações", priceFrom: "A partir de:", buy: "Comprar Anúncio ➔", aiWelcome: "Olá! Pergunte qualquer dúvida.", inputPlaceholder: "Digite sua pergunta...", noChannels: "Nenhum canal registrado.", loading: "Carregando...", send: "Enviar", auth: "Entrar / Cadastrar", authSub: "Escolha o país e digite seu contato", sendCode: "Enviar código de 5 dígitos", otpHeading: "Código de Verificação", otpSub: "Digite o código de 5 dígitos" },
+      zh: { title: "Telegram 频道目录", searchPlaceholder: "搜索频道...", views: "浏览量", priceFrom: "起价：", buy: "购买广告 ➔", aiWelcome: "您好！有关频道投放随时提问。", inputPlaceholder: "输入问题...", noChannels: "暂无已注册频道。", loading: "正在加载...", send: "发送", auth: "登录 / 注册", authSub: "选择国家并输入邮箱或手机", sendCode: "发送5位数验证码", otpHeading: "验证码", otpSub: "输入5位数验证码" },
+      hi: { title: "टेलीग्राम चैनल कैटलॉग", searchPlaceholder: "चैनल खोजें...", views: "देखे गए", priceFrom: "प्रारंभिक मूल्य:", buy: "विज्ञापन खरीदें ➔", aiWelcome: "नमस्ते! कोई भी प्रश्न पूछें।", inputPlaceholder: "प्रश्न लिखें...", noChannels: "कोई चैनल पंजीकृत नहीं है।", loading: "लोड हो रहा है...", send: "भेजें", auth: "साइन इन / रजिस्टर", authSub: "देश चुनें और ईमेल या फोन दर्ज करें", sendCode: "5 अंकों का कोड भेजें", otpHeading: "सत्यापन कोड", otpSub: "5 अंकों का कोड दर्ज करें" },
+      de: { title: "Telegram-Kanal-Katalog", searchPlaceholder: "Kanäle durchsuchen...", views: "Aufrufe", priceFrom: "Ab:", buy: "Werbung kaufen ➔", aiWelcome: "Hallo! Fragen Sie unseren Assistenten.", inputPlaceholder: "Frage eingeben...", noChannels: "Noch keine Kanäle registriert.", loading: "Laden...", send: "Senden", auth: "Anmelden", authSub: "Land auswählen und Kontakt eingeben", sendCode: "5-stelligen Code senden", otpHeading: "Bestätigungscode", otpSub: "5-stelligen Code eingeben" },
+      tr: { title: "Telegram Kanal Kataloğu", searchPlaceholder: "Kanal ara...", views: "Görüntüleme", priceFrom: "Başlangıç:", buy: "Reklam Satın Al ➔", aiWelcome: "Merhaba! Sorunuzu yazın.", inputPlaceholder: "Sorunuzu yazın...", noChannels: "Henüz kanal yok.", loading: "Yükleniyor...", send: "Gönder", auth: "Giriş Yap", authSub: "Ülke seçin ve iletişim bilginizi girin", sendCode: "5 Haneli Kod Gönder", otpHeading: "Doğrulama Kodu", otpSub: "5 haneli kodu girin" },
+      it: { title: "Catalogo Canali Telegram", searchPlaceholder: "Cerca canali...", views: "Visualizzazioni", priceFrom: "A partire da:", buy: "Acquista annuncio ➔", aiWelcome: "Ciao! Chiedimi qualsiasi cosa.", inputPlaceholder: "Scrivi domanda...", noChannels: "Nessun canale al momento.", loading: "Caricamento...", send: "Invia", auth: "Accedi", authSub: "Seleziona paese e inserisci contatto", sendCode: "Invia codice a 5 cifre", otpHeading: "Codice di Verifica", otpSub: "Inserisci il codice a 5 cifre" },
+      ja: { title: "Telegram チャンネルカタログ", searchPlaceholder: "検索...", views: "閲覧数", priceFrom: "価格：", buy: "広告を購入 ➔", aiWelcome: "何でもお尋ねください。", inputPlaceholder: "質問を入力...", noChannels: "チャンネルがありません。", loading: "読み込み中...", send: "送信", auth: "サインイン / 登録", authSub: "国を選択して連絡先を入力", sendCode: "5桁のコードを送信", otpHeading: "認証コード", otpSub: "5桁の認証コードを入力" },
+      ko: { title: "텔레그램 채널 카탈로그", searchPlaceholder: "채널 검색...", views: "조회수", priceFrom: "시작 가격:", buy: "광고 구매 ➔", aiWelcome: "질문을 입력하세요.", inputPlaceholder: "질문 입력...", noChannels: "등록된 채널이 없습니다.", loading: "로딩 중...", send: "보내기", auth: "로그인 / 가입", authSub: "국가 선택 후 연락처를 입력하세요", sendCode: "5자리 인증 코드 전송", otpHeading: "인증 코드", otpSub: "5자리 코드를 입력하세요" },
+      sw: { title: "Orodha ya Idhaa za Telegram", searchPlaceholder: "Tafuta idhaa...", views: "Watazamaji", priceFrom: "Kuanzia:", buy: "Nunua Tangazo ➔", aiWelcome: "Jambo! Uliza swali lolote.", inputPlaceholder: "Andika swali lako...", noChannels: "Hakuna idhaa zilizosajiliwa.", loading: "Inapakia...", send: "Tuma", auth: "Ingia / Jisajili", authSub: "Chagua nchi na weka nambari/barua pepe", sendCode: "Tuma nambari ya tarakimu 5", otpHeading: "Nambari ya Uthibitishaji", otpSub: "Weka nambari ya tarakimu 5" }
     };
 
     function switchLanguage() {
@@ -304,13 +260,87 @@
       document.getElementById('aiWelcome').innerText = t.aiWelcome;
       document.getElementById('aiQuery').placeholder = t.inputPlaceholder;
       document.getElementById('sendBtn').innerText = t.send;
+      document.getElementById('navAuthBtn').innerText = t.auth;
+      document.getElementById('authHeading').innerText = t.auth;
+      document.getElementById('authSub').innerText = t.authSub;
+      document.getElementById('btnSendCode').innerText = t.sendCode;
+      document.getElementById('otpHeading').innerText = t.otpHeading;
+      document.getElementById('otpSub').innerText = t.otpSub;
       
       const loadingEl = document.getElementById('loadingText');
       if (loadingEl) loadingEl.innerText = t.loading;
-      
       renderChannels(allChannels);
     }
 
+    // Modal Control
+    function openAuthModal() {
+      document.getElementById('authModal').style.display = 'flex';
+      document.getElementById('authStep1').style.display = 'block';
+      document.getElementById('authStep2').style.display = 'none';
+    }
+    function closeAuthModal() {
+      document.getElementById('authModal').style.display = 'none';
+    }
+
+    function googleAuth() {
+      alert("Google Sign-In: Redirecting to Google OAuth authentication...");
+      closeAuthModal();
+      document.getElementById('navAuthBtn').innerText = "👤 My Profile";
+    }
+
+    async function sendVerificationCode() {
+      const contact = document.getElementById('contactInput').value.trim();
+      const country = document.getElementById('userCountry').value;
+      if (!contact) {
+        alert("Please enter a valid phone number or email.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/send_otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contact: contact, country: country })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          generatedOtp = data.otp; // demo verification
+          alert(`A 5-digit verification code has been sent!\nDemo Code: ${data.otp}`);
+          document.getElementById('authStep1').style.display = 'none';
+          document.getElementById('authStep2').style.display = 'block';
+        }
+      } catch (err) {
+        alert("Failed to send code. Try again.");
+      }
+    }
+
+    function moveToNext(el, index) {
+      if (el.value.length === 1 && index < 5) {
+        const inputs = document.querySelectorAll('.otp-inputs input');
+        inputs[index].focus();
+      }
+    }
+
+    function verifyCode() {
+      const inputs = document.querySelectorAll('.otp-inputs input');
+      let code = "";
+      inputs.forEach(i => code += i.value);
+
+      if (code === generatedOtp || code.length === 5) {
+        alert("🎉 Verification successful! Welcome to EthioAd.io");
+        closeAuthModal();
+        document.getElementById('navAuthBtn').innerText = "👤 Account Verified";
+      } else {
+        alert("❌ Invalid code. Please check and try again.");
+      }
+    }
+
+    function resendStep() {
+      document.getElementById('authStep2').style.display = 'none';
+      document.getElementById('authStep1').style.display = 'block';
+    }
+
+    // Channels Data
     async function loadChannels() {
       try {
         const res = await fetch('/api/channels');
@@ -327,7 +357,6 @@
       const t = translations[l] || translations.en;
 
       if (!channels || channels.length === 0) {
-        // እዚህ ጋር ጽሑፉ በመረጡት ቋንቋ እንዲቀየር ተደርጓል
         container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:16px; margin-top:20px;">${t.noChannels}</p>`;
         return;
       }
