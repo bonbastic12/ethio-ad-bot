@@ -34,6 +34,17 @@ RENDER_URL = "https://ethio-ad-bot-wz6h.onrender.com"
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
 LANG_STRINGS = {
+    "en": {
+        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel operation: /cancel\n• Chat with AI: /ask or type your question.",
+        "lang_set": "Language switched to English.",
+        "enter_ch_name": "Enter channel name:",
+        "enter_ch_link": "Enter channel link:",
+        "enter_price": "Enter starting price (ETB):",
+        "registered": "✅ Channel registered successfully!",
+        "pay_title": "💳 *Payment Instructions*\n\n📢 *Channel:* {channel}\n⏳ *Duration:* {duration}\n💰 *Total:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 Payment approved! Please send the ad content.",
+        "posted": "🎉 Ad published to {channel}!"
+    },
     "am": {
         "welcome": "እንኳን ደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
         "lang_set": "ቋንቋው ወደ አማርኛ ተቀይሯል።",
@@ -44,17 +55,6 @@ LANG_STRINGS = {
         "pay_title": "💳 *የክፍያ መመሪያ*\n\n📢 *ቻናል፦* {channel}\n⏳ *ቆይታ፦* {duration}\n💰 *ዋጋ፦* {price} ETB (ወይም ~{usd}$ USD)",
         "ad_prompt": "🎉 ክፍያዎ ጸድቋል! እባክዎ በቻናሉ እንዲለጠፍ የሚፈልጉትን ማስታወቂያ እዚህ ይላኩ።",
         "posted": "🎉 ማስታወቂያዎ በቀጥታ በ {channel} ቻናል ላይ በተሳካ ሁኔታ ተለጥፏል!"
-    },
-    "en": {
-        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
-        "lang_set": "Language switched to English.",
-        "enter_ch_name": "Enter channel name:",
-        "enter_ch_link": "Enter channel link:",
-        "enter_price": "Enter starting price (ETB):",
-        "registered": "✅ Channel registered successfully!",
-        "pay_title": "💳 *Payment Instructions*\n\n📢 *Channel:* {channel}\n⏳ *Duration:* {duration}\n💰 *Total:* {price} ETB (~{usd}$ USD)",
-        "ad_prompt": "🎉 Payment approved! Please send the ad content.",
-        "posted": "🎉 Ad published to {channel}!"
     }
 }
 
@@ -73,7 +73,7 @@ approved_users = {}
 active_otps = {}
 
 def get_text(chat_id, key):
-    lang = user_lang.get(chat_id, "am")
+    lang = user_lang.get(chat_id, "en")
     return LANG_STRINGS.get(lang, LANG_STRINGS["en"]).get(key, LANG_STRINGS["en"].get(key, ""))
 
 def get_db_connection():
@@ -117,7 +117,6 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# 5 ዲጂት ኮድ መላኪያ
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
@@ -125,7 +124,7 @@ def send_otp():
     country_code = data.get('country_code', '+251')
 
     if not contact:
-        return jsonify({'status': 'error', 'message': 'Contact required'}), 400
+        return jsonify({'status': 'error', 'message': 'Contact is required'}), 400
 
     otp_code = str(random.randint(10000, 99999))
     active_otps[contact] = otp_code
@@ -154,7 +153,6 @@ def send_otp():
         'message': 'Code generated successfully'
     })
 
-# 5 ዲጂት ኮድ ማረጋገጫ
 @app.route('/api/verify_otp', methods=['POST'])
 def verify_otp():
     data = request.get_json() or {}
@@ -173,15 +171,15 @@ def verify_otp():
     
     return jsonify({'status': 'error', 'message': 'Invalid code'}), 400
 
-# አስተማማኝ AI ረዳት ፈጻሚ (ስህተትን የሚከላከል)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return "⚠️ Error: GEMINI_API_KEY not set on Render."
+        return "⚠️ Error: GEMINI_API_KEY is not configured on Render Environment."
 
+    last_error = ""
     try:
         ai_client = genai.Client(api_key=key.strip())
-        for target_model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']:
+        for target_model in ['gemini-2.5-flash', 'gemini-3.8-flash', 'gemini-2.0-flash']:
             try:
                 res = ai_client.models.generate_content(
                     model=target_model,
@@ -189,18 +187,19 @@ def call_gemini_models(system_prompt, question_text):
                 )
                 if res and res.text:
                     return res.text
-            except:
+            except Exception as single_err:
+                last_error = str(single_err)
                 continue
     except Exception as e:
-        return f"AI Error: {str(e)}"
+        return f"AI Service Error: {str(e)}"
 
-    return "ይቅርታ፣ AI ረዳቱ በወቅቱ ምላሽ መስጠት አልቻለም። እባክዎ እንደገና ይሞክሩ።"
+    return f"AI Error: {last_error}"
 
 @app.route('/api/ask_ai', methods=['POST'])
 def api_ask_ai():
     data = request.get_json() or {}
     query = data.get('query', '')
-    lang = data.get('lang', 'am')
+    lang = data.get('lang', 'en')
 
     system_prompt = (
         f"You are the official assistant for Ethio Telegram Ads catalog. "
@@ -232,8 +231,8 @@ def choose_language(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     markup = InlineKeyboardMarkup(row_width=3)
     markup.add(
-        InlineKeyboardButton("🇪🇹 አማርኛ", callback_data="lang_am"),
         InlineKeyboardButton("🇬🇧 English", callback_data="lang_en"),
+        InlineKeyboardButton("🇪🇹 አማርኛ", callback_data="lang_am"),
         InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar"),
         InlineKeyboardButton("🇫🇷 Français", callback_data="lang_fr"),
         InlineKeyboardButton("🇪🇸 Español", callback_data="lang_es"),
@@ -259,7 +258,7 @@ def set_lang_handler(call):
     bot.send_message(call.message.chat.id, get_text(call.message.chat.id, "welcome"))
 
 def generate_ai_response(user_id, question_text):
-    current_l = user_lang.get(user_id, "am")
+    current_l = user_lang.get(user_id, "en")
     system_prompt = f"You are the official smart AI assistant for Ethio Telegram Ads. Respond concisely in: {current_l}."
     return call_gemini_models(system_prompt, question_text)
 
@@ -279,7 +278,7 @@ def cancel_action(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     if message.chat.id in approved_users:
         del approved_users[message.chat.id]
-    bot.reply_to(message, "Process cancelled. / ሂደቱ ተሰርዟል።")
+    bot.reply_to(message, "Process cancelled.")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
@@ -333,7 +332,7 @@ def process_price(message, channel_name, channel_link):
 
         bot.reply_to(message, get_text(message.chat.id, "registered"))
     except ValueError:
-        bot.reply_to(message, "❌ Invalid number.")
+        bot.reply_to(message, "❌ Invalid number. Please enter digits only.")
 
 @bot.message_handler(commands=['buy_ad'])
 def buy_ad_start(message):
@@ -351,7 +350,7 @@ def buy_ad_start(message):
         btn = InlineKeyboardButton(f"{ch['channel_name']} (from {ch['final_price']} ETB)", callback_data=f"selch_{ch['id']}")
         markup.add(btn)
 
-    bot.reply_to(message, "Select a channel / ቻናል ይምረጡ፦", reply_markup=markup)
+    bot.reply_to(message, "Select a channel:", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('selch_'))
 def handle_channel_select(call):
@@ -418,7 +417,7 @@ def handle_duration_select(call):
 
     full_payment_text = (
         f"{base_title}\n\n"
-        f"🇪🇹 *Local Payments (ኢትዮጵያ):*\n"
+        f"🇪🇹 *Local Payments (Ethiopia):*\n"
         f"• Telebirr: `{TELEBIRR_NUM}`\n"
         f"• CBE Bank: `{CBE_ACCOUNT}`\n"
         f"• Abyssinia: `{ABYSSINIA_ACCOUNT}`\n"
@@ -546,7 +545,7 @@ def handle_text_messages(message):
         try:
             bot.send_message(target_channel, message.text)
             bot.reply_to(message, get_text(user_id, "posted").format(channel=target_channel))
-            bot.send_message(ADMIN_ID, f"✅ Auto-posted to {target_channel} successfully.")
+            bot.send_message(ADMIN_ID, f"✅ Ad auto-posted to {target_channel} successfully.")
         except Exception as e:
             bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
             bot.reply_to(message, "Ad received! It will be posted by the admin.")
