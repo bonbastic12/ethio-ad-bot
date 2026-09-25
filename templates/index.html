@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="am">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -67,6 +67,7 @@
     .logo { font-size: 20px; font-weight: 800; color: #0088cc; text-decoration: none; }
     .header-actions { display: flex; align-items: center; gap: 10px; }
     .add-ch-btn { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .add-ch-btn:hover { background: #059669; }
 
     .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
     .user-badge-banner { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; font-weight: 600; }
@@ -700,16 +701,22 @@
       document.getElementById('aiQuery').placeholder = t.inputPlaceholder;
       document.getElementById('btnAiSend').innerText = t.send;
 
+      const banner = document.getElementById('userBanner');
+      if (banner) {
+        banner.innerText = (lang === 'en')
+          ? "Welcome! Select any channel below to order and publish your advertisement."
+          : "እንኳን ደህና መጡ! ተስማሚ ቻናሎችን ከመረጡ በኋላ በቀጥታ ማስታወቂያዎን መለጠፍ ይችላሉ።";
+      }
+
       renderChannels(allChannels);
     }
 
     function openGoogleAccountChooser() {
-      const currentUrl = window.location.href;
-      const googleAccountsUrl = "https://accounts.google.com/AccountChooser?service=lso&continue=" + encodeURIComponent(currentUrl);
-      window.open(googleAccountsUrl, "_blank", "width=500,height=600");
-      setTimeout(() => {
+      const email = prompt("እባክዎ በስልክዎ ላይ ካሉት የ Google/Gmail አካውንቶች አንዱን ያስገቡ፦");
+      if (email && email.includes('@')) {
+        localStorage.setItem('ethio_ad_auth', 'verified');
         moveToRoleSelection();
-      }, 1500);
+      }
     }
 
     async function requestVerificationCode() {
@@ -754,7 +761,7 @@
       }
     }
 
-    // STRICT OTP VERIFICATION (ተጠቃሚው ያስገባው ኮድ በትክክል ካልተመሳሰለ Wrong ብሎ ይከለክላል)
+    // የተሳሳተ OTP ሲገባ "Wrong OTP" ብሎ ውድቅ የሚያደርግ ጥብቅ ማረጋገጫ
     async function submitOtpVerification() {
       const inputs = document.querySelectorAll('.otp-boxes input');
       let otp = "";
@@ -904,6 +911,7 @@
         const stars = Math.max(1, Math.round((totalEtb / 125) * 50));
         document.getElementById('starsEquivalent').innerText = `${stars} ⭐️`;
       } else {
+        // የውጭ ሀገር ክፍያ በዶላር ($10 ኮሚሽን ተጨምሮበት)
         const baseUsd = Math.round((totalEtb / 125) * 100) / 100;
         const totalUsdWithCommission = (baseUsd + 10).toFixed(2);
         document.getElementById('payTotalText').innerText = `$${totalUsdWithCommission} USD (USDT)`;
