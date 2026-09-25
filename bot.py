@@ -131,7 +131,6 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# DIRECT WEB CHANNEL REGISTRATION
 @app.route('/api/add_channel', methods=['POST'])
 def api_add_channel():
     data = request.get_json() or {}
@@ -162,7 +161,6 @@ def api_add_channel():
 
     return jsonify({'status': 'ok'})
 
-# DIRECT WEB PAYMENT VERIFICATION SUBMISSION
 @app.route('/api/submit_payment', methods=['POST'])
 def api_submit_payment():
     data = request.get_json() or {}
@@ -236,7 +234,6 @@ def send_otp():
         'message': 'Code generated successfully'
     })
 
-# STRICT OTP VERIFICATION LOGIC (የተሳሳተ ኮድ ሲገባ በትክክል ውድቅ ያደርጋል)
 @app.route('/api/verify_otp', methods=['POST'])
 def verify_otp():
     data = request.get_json() or {}
@@ -245,7 +242,6 @@ def verify_otp():
 
     saved_otp = active_otps.get(contact)
 
-    # ተጠቃሚው ያስገባው በትክክል የተላከው ኮድ ብቻ መሆን አለበት
     if saved_otp and saved_otp == user_otp:
         del active_otps[contact]
         conn = get_db_connection()
@@ -254,10 +250,9 @@ def verify_otp():
         conn.close()
         return jsonify({'status': 'ok'})
     
-    # ኮዱ ካልተመሳሰለ ስህተት (400) ይመልሳል
     return jsonify({'status': 'error', 'message': 'Invalid verification code (Wrong OTP)'}), 400
 
-# PREFERRED GEMINI 3.8 FLASH WITH SEQUENTIAL FALLBACKS
+# 404 እንዳያመጣ የተረጋጉ ሞዴሎችን የሚጠራ AI ተግባር
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
@@ -266,7 +261,7 @@ def call_gemini_models(system_prompt, question_text):
     last_error = ""
     try:
         ai_client = genai.Client(api_key=key.strip())
-        for target_model in ['gemini-3.8-flash', 'gemini-2.5-flash', 'gemini-1.5-flash']:
+        for target_model in ['gemini-2.5-flash', 'gemini-2.0-flash']:
             try:
                 res = ai_client.models.generate_content(
                     model=target_model,
