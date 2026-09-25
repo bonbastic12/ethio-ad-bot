@@ -1,5 +1,7 @@
 import os
 import random
+import smtplib
+from email.mime.text import MIMEText
 import sqlite3
 from flask import Flask, request, jsonify, render_template
 from flask_cors import CORS
@@ -15,13 +17,15 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN", "")
 ADMIN_ID = 6179388927
 
-# የሀገር ውስጥ ክፍያ መረጃ
+# ኢሜይል መላኪያ መረጃ (የራስዎ የ Gmail App Password ካለዎት በ Render Variables ላይ SMTP_EMAIL እና SMTP_PASSWORD ማስገባት ይችላሉ)
+SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
+
 CBE_ACCOUNT = "1000785625556"
 TELEBIRR_NUM = "0927943402"
 ABYSSINIA_ACCOUNT = "218988407"
 ACCOUNT_NAME = "Wo..."
 
-# ዓለም አቀፍ የክሪፕቶ ዋሌቶች
 TON_WALLET = "UQCxUAhKH0Zlj_LT2-fDtktqVZ7sFsLNS47-pfqOK_MiOjnm"
 TRC20_WALLET = "TSTAsyXoWR8CqWLP2yGaFgJ385vJs2WeR8"
 ERC20_WALLET = "0x8929FF9b5cE44E4c433318D6321AFF2c077Ed9DF"
@@ -39,19 +43,19 @@ LANG_STRINGS = {
         "enter_price": "የሚፈልጉትን የመነሻ ዋጋ በብር ያስገቡ (ለምሳሌ፦ 1000):",
         "registered": "✅ ቻናልዎ በተሳካ ሁኔታ ተመዝግቧል!",
         "pay_title": "💳 *የክፍያ መመሪያ*\n\n📢 *ቻናል፦* {channel}\n⏳ *ቆይታ፦* {duration}\n💰 *ዋጋ፦* {price} ETB (ወይም ~{usd}$ USD)",
-        "ad_prompt": "🎉 ክፍያዎ ጸድቋል! እባክዎ በቻናሉ እንዲለጠፍ የሚፈልጉትን ማስታወቂያ (ጽሑፍ ወይም ፎቶ) እዚህ ይላኩ።",
+        "ad_prompt": "🎉 ክፍያዎ ጸድቋል! እባክዎ በቻናሉ እንዲለጠፍ የሚፈልጉትን ማስታወቂያ እዚህ ይላኩ።",
         "posted": "🎉 ማስታወቂያዎ በቀጥታ በ {channel} ቻናል ላይ በተሳካ ሁኔታ ተለጥፏል!"
     },
     "en": {
-        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel operation: /cancel\n• Chat with AI: /ask or just type your question.",
+        "welcome": "Welcome! 📢\n\n• Register channel: /register\n• Buy ad: /buy_ad\n• Change language: /lang\n• Cancel: /cancel\n• Chat with AI: /ask or type your question.",
         "lang_set": "Language switched to English.",
-        "enter_ch_name": "Please enter your channel name:",
-        "enter_ch_link": "Please enter channel link (e.g. https://t.me/wodtech1):",
-        "enter_price": "Enter starting price in ETB (e.g. 1000):",
-        "registered": "✅ Your channel has been registered successfully!",
-        "pay_title": "💳 *Payment Instructions*\n\n📢 *Channel:* {channel}\n⏳ *Duration:* {duration}\n💰 *Total:* {price} ETB (or ~{usd}$ USD)",
-        "ad_prompt": "🎉 Payment approved! Please send the ad text or photo to be published.",
-        "posted": "🎉 Your ad has been published to {channel} successfully!"
+        "enter_ch_name": "Enter channel name:",
+        "enter_ch_link": "Enter channel link:",
+        "enter_price": "Enter starting price (ETB):",
+        "registered": "✅ Channel registered successfully!",
+        "pay_title": "💳 *Payment Instructions*\n\n📢 *Channel:* {channel}\n⏳ *Duration:* {duration}\n💰 *Total:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 Payment approved! Please send the ad content.",
+        "posted": "🎉 Ad published to {channel}!"
     }
 }
 
@@ -67,6 +71,7 @@ DURATION_OPTIONS = {
 user_lang = {}
 user_orders = {}
 approved_users = {}
+active_otps = {}  # 5 ዲጂት ኮዶችን መያዣ
 
 def get_text(chat_id, key):
     lang = user_lang.get(chat_id, "am")
@@ -94,7 +99,6 @@ def init_db():
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             contact TEXT UNIQUE,
-            country TEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
     ''')
@@ -114,47 +118,80 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# ባለ 5 ዲጂት የማረጋገጫ ኮድ (OTP) መላኪያ
+# 5 ዲጂት ኮድ በቀጥታ ወደ ኢሜይል ወይም ስልክ መላኪያ
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
     contact = data.get('contact', '').strip()
-    country = data.get('country', 'ET')
+    country_code = data.get('country_code', '+251')
 
     if not contact:
-        return jsonify({'status': 'error', 'message': 'Contact is required'}), 400
+        return jsonify({'status': 'error', 'message': 'Contact required'}), 400
 
-    # 5 ዲጂት የዘፈቀደ ቁጥር
     otp_code = str(random.randint(10000, 99999))
+    active_otps[contact] = otp_code
 
-    # ዳታቤዝ ላይ ተጠቃሚውን ማስቀመጥ
-    conn = get_db_connection()
-    conn.execute('INSERT OR IGNORE INTO users (contact, country) VALUES (?, ?)', (contact, country))
-    conn.commit()
-    conn.close()
+    # ኢሜይል ከሆነ በቀጥታ ወደ Inbox መላክ
+    if "@" in contact and SMTP_EMAIL and SMTP_PASSWORD:
+        try:
+            msg = MIMEText(f"Your EthioAd.io 5-Digit Verification Code is: {otp_code}\n\nDo not share this code with anyone.")
+            msg['Subject'] = "EthioAd.io Verification Code"
+            msg['From'] = SMTP_EMAIL
+            msg['To'] = contact
+
+            server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
+            server.login(SMTP_EMAIL, SMTP_PASSWORD)
+            server.sendmail(SMTP_EMAIL, [contact], msg.as_string())
+            server.quit()
+        except Exception as e:
+            print(f"SMTP Error: {e}")
+
+    # ለቴሌግራም አድሚኑም ማሳወቂያ መላክ
+    try:
+        bot.send_message(ADMIN_ID, f"🔐 *New Web Login Code*\n\nTarget: `{contact}`\nCountry: `{country_code}`\n5-Digit Code: `{otp_code}`", parse_mode="Markdown")
+    except:
+        pass
 
     return jsonify({
         'status': 'ok',
-        'otp': otp_code,
-        'message': f'5-digit code generated for {contact}'
+        'message': 'Code sent successfully'
     })
 
-# አስተማማኝ AI ጥሪ
+# 5 ዲጂት ኮድ ማረጋገጫ
+@app.route('/api/verify_otp', methods=['POST'])
+def verify_otp():
+    data = request.get_json() or {}
+    contact = data.get('contact', '').strip()
+    user_otp = data.get('otp', '').strip()
+
+    saved_otp = active_otps.get(contact)
+
+    if saved_otp and saved_otp == user_otp:
+        del active_otps[contact]
+        conn = get_db_connection()
+        conn.execute('INSERT OR IGNORE INTO users (contact) VALUES (?)', (contact,))
+        conn.commit()
+        conn.close()
+        return jsonify({'status': 'ok'})
+    
+    return jsonify({'status': 'error', 'message': 'Invalid code'}), 400
+
+# Google በይፋ ያዘዘውን `gemini-3.8-flash` የሚጠራው የ AI ተግባር
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return "⚠️ Error: GEMINI_API_KEY is missing on Render."
+        return "⚠️ Error: GEMINI_API_KEY missing on Render."
 
     try:
         ai_client = genai.Client(api_key=key.strip())
         res = ai_client.models.generate_content(
-            model='gemini-2.0-flash',
+            model='gemini-3.8-flash',
             contents=f"{system_prompt}\n\nUser Question: {question_text}"
         )
         if res and res.text:
             return res.text
     except Exception as e:
-        return f"AI Service Error: {str(e)}"
+        return f"AI Error: {str(e)}"
 
     return "No reply generated."
 
@@ -165,8 +202,8 @@ def api_ask_ai():
     lang = data.get('lang', 'am')
 
     system_prompt = (
-        f"You are the official smart AI assistant for Ethio Telegram Ads catalog. "
-        f"Always respond fluently and concisely in this language code: {lang}. "
+        f"You are the official assistant for Ethio Telegram Ads catalog. "
+        f"Always reply politely and clearly in this language code: {lang}. "
         f"Explain how to select channels, pay via Telebirr/CBE or Crypto/Stars, and publish ads."
     )
     answer = call_gemini_models(system_prompt, query)
@@ -189,7 +226,6 @@ def extract_channel_handle(link_or_name):
         clean = "@" + clean
     return clean
 
-# 15 ቋንቋዎች መምረጫ
 @bot.message_handler(commands=['lang'])
 def choose_language(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
@@ -224,11 +260,8 @@ def set_lang_handler(call):
 def generate_ai_response(user_id, question_text):
     current_l = user_lang.get(user_id, "am")
     system_prompt = (
-        f"You are the official smart AI assistant for 'Ethio Telegram Ads' platform. "
-        f"Respond politely and concisely in the user's selected language: {current_l}. "
-        f"Provide short, helpful answers. Commands: /register to add a channel, /buy_ad to purchase ads, "
-        f"/lang to switch language, /cancel to reset. "
-        f"Payments: Telebirr, CBE, Abyssinia, Telegram Stars, and Crypto (TON, TRC20, ERC20)."
+        f"You are the official smart AI assistant for Ethio Telegram Ads. "
+        f"Respond politely and concisely in the user's selected language: {current_l}."
     )
     return call_gemini_models(system_prompt, question_text)
 
@@ -303,7 +336,7 @@ def process_price(message, channel_name, channel_link):
 
         bot.reply_to(message, get_text(message.chat.id, "registered"))
     except ValueError:
-        bot.reply_to(message, "❌ Invalid number. Please enter digits only.")
+        bot.reply_to(message, "❌ Invalid number.")
 
 # ማስታወቂያ መግዛት
 @bot.message_handler(commands=['buy_ad'])
@@ -418,7 +451,6 @@ def handle_star_pay(call):
     user_id = call.message.chat.id
     order = user_orders.get(user_id)
     if not order:
-        bot.send_message(user_id, "Order not found. Try /buy_ad.")
         return
 
     prices = [LabeledPrice(label=f"Ad on {order['channel_name']}", amount=order['stars'])]
@@ -502,7 +534,7 @@ def handle_admin_action(call):
         bot.send_message(customer_id, get_text(customer_id, "ad_prompt"))
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🟢 [APPROVED]")
     else:
-        bot.send_message(customer_id, "❌ Payment rejected. Contact admin.")
+        bot.send_message(customer_id, "❌ Payment rejected.")
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🔴 [REJECTED]")
 
 @bot.message_handler(func=lambda message: True, content_types=['text'])
@@ -519,7 +551,7 @@ def handle_text_messages(message):
         try:
             bot.send_message(target_channel, message.text)
             bot.reply_to(message, get_text(user_id, "posted").format(channel=target_channel))
-            bot.send_message(ADMIN_ID, f"✅ Ad auto-posted to {target_channel} successfully.")
+            bot.send_message(ADMIN_ID, f"✅ Auto-posted to {target_channel} successfully.")
         except Exception as e:
             bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
             bot.reply_to(message, "Ad received! It will be posted by the admin.")
