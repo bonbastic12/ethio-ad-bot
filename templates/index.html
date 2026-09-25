@@ -3,34 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ethio Telegram Ads Catalog</title>
+  <title>Ads Galaxy - Publisher Command Center</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: #f4f6f8; color: #222; }
+    body { background-color: #f3f6fc; color: #1e293b; padding-bottom: 60px; }
 
+    /* AUTH GATE OVERLAY */
     #authGateScreen {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-      background: #0b1329; display: flex; align-items: center; justify-content: center;
+      background: #091326; display: flex; align-items: center; justify-content: center;
       z-index: 99999; padding: 16px;
     }
     .auth-card {
-      background: #ffffff; width: 100%; max-width: 440px; border-radius: 20px;
-      padding: 26px; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); position: relative;
+      background: #ffffff; width: 100%; max-width: 420px; border-radius: 20px;
+      padding: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); position: relative;
     }
     .auth-top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .auth-logo { font-size: 22px; font-weight: 900; color: #0088cc; }
-    .auth-desc { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 18px; line-height: 1.4; }
+    .auth-desc { text-align: center; font-size: 13px; color: #64748b; margin-bottom: 16px; line-height: 1.4; }
 
     .lang-select-box { padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600; background: #fff; outline: none; cursor: pointer; }
 
     .google-btn {
       width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px;
       border: 1px solid #cbd5e1; padding: 11px; border-radius: 10px; background: #fff;
-      font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.2s; text-decoration: none; color: inherit;
+      font-weight: 700; font-size: 14px; cursor: pointer;
     }
-    .google-btn:hover { background: #f8fafc; }
-
-    .divider { display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 12px; margin: 15px 0; }
+    .divider { display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 12px; margin: 14px 0; }
     .divider::before, .divider::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
     .divider:not(:empty)::before { margin-right: .5em; }
     .divider:not(:empty)::after { margin-left: .5em; }
@@ -44,67 +43,87 @@
       width: 100%; background: #0088cc; color: #fff; border: none; padding: 12px;
       border-radius: 10px; font-weight: 800; font-size: 14px; cursor: pointer; margin-top: 6px;
     }
-    .btn-submit:hover { background: #0077b5; }
-
-    .otp-boxes { display: flex; justify-content: center; gap: 8px; margin: 18px 0; }
+    .otp-boxes { display: flex; justify-content: center; gap: 8px; margin: 16px 0; }
     .otp-boxes input {
-      width: 46px; height: 52px; text-align: center; font-size: 22px; font-weight: 800;
+      width: 44px; height: 50px; text-align: center; font-size: 22px; font-weight: 800;
       border-radius: 10px; border: 2px solid #cbd5e1; outline: none;
     }
-    .otp-boxes input:focus { border-color: #0088cc; }
-
     .role-btn {
-      width: 100%; border: 2px solid #e2e8f0; background: #f8fafc; padding: 14px;
-      border-radius: 12px; text-align: left; cursor: pointer; margin-bottom: 12px; transition: 0.2s;
+      width: 100%; border: 2px solid #e2e8f0; background: #f8fafc; padding: 12px;
+      border-radius: 12px; text-align: left; cursor: pointer; margin-bottom: 10px;
     }
-    .role-btn:hover { border-color: #0088cc; background: #f0f9ff; }
-    .role-title { font-size: 15px; font-weight: 800; color: #0f172a; margin-bottom: 3px; }
-    .role-sub { font-size: 12px; color: #64748b; }
 
-    #mainDashboard { display: none; padding-bottom: 80px; }
-    header { background: #fff; border-bottom: 1px solid #e1e4e8; padding: 12px 16px; position: sticky; top: 0; z-index: 100; }
-    .top-bar { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; }
-    .logo { font-size: 20px; font-weight: 800; color: #0088cc; text-decoration: none; }
-    .header-actions { display: flex; align-items: center; gap: 10px; }
-    .add-ch-btn { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
-    .add-ch-btn:hover { background: #059669; }
+    /* ADS GALAXY NAVBAR */
+    #mainDashboard { display: none; }
+    .navbar {
+      background: #1994ea; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; color: #fff;
+    }
+    .navbar-brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 18px; }
+    .menu-icon { font-size: 20px; cursor: pointer; }
 
-    .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
-    .user-badge-banner { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; font-weight: 600; }
-    .page-title { font-size: 24px; font-weight: 800; margin-bottom: 15px; color: #1e293b; }
-    .search-input { width: 100%; padding: 12px 16px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 15px; outline: none; margin-bottom: 20px; }
+    .container { max-width: 600px; margin: auto; padding: 16px; }
 
-    .channel-card { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
-    .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
-    .channel-icon { width: 50px; height: 50px; border-radius: 50%; background: #0088cc; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
-    .ch-title { font-size: 18px; font-weight: 700; color: #0f172a; }
-    .ch-link { font-size: 13px; color: #64748b; text-decoration: none; }
-    .ch-stats { display: flex; justify-content: space-between; background: #f8fafc; padding: 12px 16px; border-radius: 10px; margin: 12px 0; border: 1px solid #edf2f7; }
-    .stat-val { font-size: 16px; font-weight: 700; color: #1e293b; }
-    .stat-lbl { font-size: 12px; color: #64748b; }
-    .card-action { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
-    .price-tag { font-size: 18px; font-weight: 800; color: #16a34a; }
-    .buy-btn { background: #16a34a; color: white; padding: 10px 18px; border-radius: 8px; font-weight: 700; font-size: 14px; border: none; cursor: pointer; }
+    /* HERO CARD: PUBLISHER COMMAND CENTER */
+    .hero-card {
+      background: linear-gradient(135deg, #0f1c3f 0%, #081226 100%);
+      color: #fff; border-radius: 24px; padding: 26px 20px; margin-bottom: 20px;
+      box-shadow: 0 12px 30px rgba(8,18,38,0.25);
+    }
+    .badge-pill {
+      display: inline-flex; align-items: center; gap: 6px; background: rgba(255,255,255,0.12);
+      padding: 6px 14px; border-radius: 20px; font-size: 11px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 16px;
+    }
+    .hero-title { font-size: 28px; font-weight: 900; line-height: 1.2; margin-bottom: 12px; }
+    .hero-sub { font-size: 13px; color: #94a3b8; line-height: 1.5; margin-bottom: 22px; }
+    .btn-hero {
+      width: 100%; background: #ffffff; color: #0284c7; border: none; padding: 14px; border-radius: 30px;
+      font-size: 14px; font-weight: 800; display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; text-decoration: none;
+    }
 
+    /* GRID STATS TILES */
+    .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 24px; }
+    .stat-tile {
+      background: #ffffff; border-radius: 20px; padding: 18px; box-shadow: 0 2px 10px rgba(0,0,0,0.03); border: 1px solid #edf2f7;
+    }
+    .stat-icon { font-size: 20px; margin-bottom: 12px; display: inline-block; }
+    .stat-label { font-size: 12px; color: #64748b; font-weight: 600; margin-bottom: 6px; }
+    .stat-value { font-size: 22px; font-weight: 900; color: #0f172a; }
+
+    /* SECTION HEADER */
+    .section-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .section-title { font-size: 18px; font-weight: 800; color: #0f172a; }
+    .section-link { font-size: 13px; color: #0284c7; font-weight: 700; text-decoration: none; cursor: pointer; }
+
+    /* CHANNEL TILES */
+    .channel-card {
+      background: #ffffff; border-radius: 18px; padding: 16px; border: 1px solid #edf2f7; margin-bottom: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02); display: flex; justify-content: space-between; align-items: center;
+    }
+    .ch-left { display: flex; align-items: center; gap: 12px; }
+    .ch-icon { width: 44px; height: 44px; border-radius: 50%; background: #0088cc; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 800; }
+    .ch-name { font-size: 15px; font-weight: 800; }
+    .ch-price { font-size: 16px; font-weight: 900; color: #16a34a; text-align: right; }
+    .btn-buy-sm { background: #16a34a; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-size: 12px; font-weight: 800; cursor: pointer; margin-top: 4px; }
+
+    /* MODALS */
     .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 10000; align-items: center; justify-content: center; padding: 16px; }
-    .modal-window { background: #fff; width: 100%; max-width: 480px; border-radius: 16px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto; }
+    .modal-window { background: #fff; width: 100%; max-width: 460px; border-radius: 20px; padding: 22px; position: relative; max-height: 90vh; overflow-y: auto; }
     .modal-close { position: absolute; right: 18px; top: 16px; cursor: pointer; font-size: 20px; font-weight: bold; color: #94a3b8; }
-
-    .location-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-    .loc-tab-btn { flex: 1; padding: 10px; border: 2px solid #cbd5e1; border-radius: 10px; background: #f8fafc; font-weight: 700; font-size: 13px; cursor: pointer; text-align: center; }
+    .location-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+    .loc-tab-btn { flex: 1; padding: 8px; border: 2px solid #cbd5e1; border-radius: 8px; background: #f8fafc; font-weight: 700; font-size: 12px; cursor: pointer; text-align: center; }
     .loc-tab-btn.active { border-color: #0088cc; background: #eff6ff; color: #0088cc; }
 
-    .ai-fab { position: fixed; bottom: 25px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.4); z-index: 999; }
-    .chat-modal { display: none; position: fixed; bottom: 90px; right: 20px; width: 340px; height: 460px; background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden; z-index: 1000; border: 1px solid #e2e8f0; }
-    .chat-header { background: #2563eb; color: #fff; padding: 12px 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
-    .chat-close { cursor: pointer; font-size: 18px; }
-    .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+    /* AI FLOAT */
+    .ai-fab { position: fixed; bottom: 20px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #1994ea; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; box-shadow: 0 8px 20px rgba(25,148,234,0.4); z-index: 999; }
+    .chat-modal { display: none; position: fixed; bottom: 85px; right: 20px; width: 330px; height: 440px; background: #fff; border-radius: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.25); flex-direction: column; overflow: hidden; z-index: 1000; border: 1px solid #e2e8f0; }
+    .chat-header { background: #1994ea; color: #fff; padding: 12px 16px; font-weight: 800; display: flex; justify-content: space-between; align-items: center; }
+    .chat-messages { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; font-size: 13px; }
     .msg { padding: 8px 12px; border-radius: 10px; max-width: 80%; line-height: 1.4; }
     .msg.bot { background: #f1f5f9; align-self: flex-start; color: #1e293b; }
-    .msg.user { background: #2563eb; color: #fff; align-self: flex-end; }
+    .msg.user { background: #1994ea; color: #fff; align-self: flex-end; }
     .chat-input-bar { display: flex; border-top: 1px solid #e2e8f0; padding: 8px; gap: 6px; }
     .chat-input-bar input { flex: 1; border: 1px solid #cbd5e1; border-radius: 8px; padding: 8px 12px; outline: none; }
-    .chat-input-bar button { background: #2563eb; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 600; }
+    .chat-input-bar button { background: #1994ea; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; cursor: pointer; font-weight: 700; }
   </style>
 </head>
 <body>
@@ -113,7 +132,7 @@
   <div id="authGateScreen">
     <div class="auth-card">
       <div class="auth-top-bar">
-        <div class="auth-logo">⚡ EthioAd.io</div>
+        <div class="auth-logo">⚡ Ads Galaxy</div>
         <select id="authLangSwitcher" class="lang-select-box" onchange="syncAndSwitchLanguage(this.value)">
           <option value="am">🇪🇹 አማርኛ</option>
           <option value="en">🇬🇧 English</option>
@@ -133,19 +152,17 @@
         </select>
       </div>
 
-      <!-- Step 1: Input -->
       <div id="stepInput">
-        <p class="auth-desc" id="lblAuthDesc">እንኳን ደህና መጡ! ወደ ቴሌግራም ቻናሎች ካታሎግ ለመግባት ይመዝገቡ ወይም ይግቡ።</p>
-
+        <p class="auth-desc" id="lblAuthDesc">Welcome! Sign in to access your Publisher Command Center.</p>
         <button class="google-btn" onclick="openGoogleAccountChooser()">
           <img width="18" height="18" src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9zqoA7hOQZs=s48" />
-          <span id="lblGoogle">በ Google ቀጥል</span>
+          <span id="lblGoogle">Continue with Google</span>
         </button>
 
-        <div class="divider" id="lblDivider">ወይም</div>
+        <div class="divider" id="lblDivider">OR</div>
 
         <div class="form-group">
-          <label id="lblCountrySelect">ሀገርዎን ይምረጡ (250+ Countries):</label>
+          <label id="lblCountrySelect">Select Country (250+ Countries):</label>
           <select id="countrySelect" onchange="handleCountryChange(this.value)">
             <option value="+251">🇪🇹 Ethiopia (+251)</option>
             <option value="+93">🇦🇫 Afghanistan (+93)</option>
@@ -398,18 +415,16 @@
         </div>
 
         <div class="form-group">
-          <label id="lblContact">ኢሜይል ወይም ስልክ ቁጥር</label>
+          <label id="lblContact">Email or Phone Number</label>
           <input type="text" id="targetContact" placeholder="0912345678 or name@gmail.com" />
         </div>
 
-        <button class="btn-submit" id="btnSendOtp" onclick="requestVerificationCode()">ባለ 5 ዲጂት ኮድ ላክ</button>
+        <button class="btn-submit" id="btnSendOtp" onclick="requestVerificationCode()">Send 5-Digit Code</button>
       </div>
 
-      <!-- Step 2: 5-Digit Verification -->
       <div id="stepOtp" style="display: none;">
-        <h3 style="text-align:center; margin-bottom: 6px;" id="lblOtpTitle">ባለ 5 ዲጂቱን ኮድ ያስገቡ</h3>
-        <p class="auth-desc" id="sentNotice">የተላከውን ባለ 5 ዲጂት የማረጋገጫ ኮድ ያስገቡ</p>
-
+        <h3 style="text-align:center; margin-bottom: 6px;" id="lblOtpTitle">Enter 5-Digit Code</h3>
+        <p class="auth-desc" id="sentNotice">Enter the verification code sent to your contact</p>
         <div class="otp-boxes">
           <input type="text" maxlength="1" oninput="jumpNext(this, 1)" />
           <input type="text" maxlength="1" oninput="jumpNext(this, 2)" />
@@ -417,86 +432,99 @@
           <input type="text" maxlength="1" oninput="jumpNext(this, 4)" />
           <input type="text" maxlength="1" oninput="jumpNext(this, 5)" />
         </div>
-
-        <button class="btn-submit" id="btnVerifySubmit" onclick="submitOtpVerification()">አረጋግጥና ቀጥል ➔</button>
-        <p style="text-align: center; margin-top: 15px; font-size: 13px; color: #0088cc; cursor: pointer;" id="lblResend" onclick="backToStepInput()">እውቂያ ቀይር / እንደገና ላክ</p>
+        <button class="btn-submit" id="btnVerifySubmit" onclick="submitOtpVerification()">Verify & Proceed ➔</button>
+        <p style="text-align: center; margin-top: 14px; font-size: 13px; color: #0088cc; cursor: pointer;" id="lblResend" onclick="backToStepInput()">Change contact / Resend</p>
       </div>
 
-      <!-- Step 3: Role Selection -->
       <div id="stepRole" style="display: none;">
-        <h3 style="text-align:center; margin-bottom: 6px;" id="lblRoleHeader">እርስዎ ማስታወቂያ አሰሪ ነዎት ወይስ ሰሪ?</h3>
-        <p class="auth-desc" id="lblRoleSub">እባክዎ አንዱን ይምረጡ፦</p>
-
+        <h3 style="text-align:center; margin-bottom: 6px;" id="lblRoleHeader">Are you an Advertiser or a Channel Owner?</h3>
+        <p class="auth-desc" id="lblRoleSub">Please select an option:</p>
         <button class="role-btn" onclick="chooseRole('advertiser')">
-          <div class="role-title" id="lblRoleAdvTitle">📢 ማስታወቂያ አሰሪ ነኝ (Advertiser)</div>
-          <div class="role-sub" id="lblRoleAdvSub">በቴሌግራም ቻናሎች ላይ ንግዴን ማስተዋወቅ እፈልጋለሁ።</div>
+          <div style="font-weight:800; font-size:15px;" id="lblRoleAdvTitle">📢 I am an Advertiser</div>
+          <div style="font-size:12px; color:#64748b;" id="lblRoleAdvSub">I want to promote products or channels.</div>
         </button>
-
         <button class="role-btn" onclick="chooseRole('creator')">
-          <div class="role-title" id="lblRoleChTitle">📺 ማስታወቂያ ሰሪ ነኝ (Channel Owner)</div>
-          <div class="role-sub" id="lblRoleChSub">የራሴ የቴሌግራም ቻናል አለኝ፤ ማስታወቂያዎችን አስተናግዳለሁ።</div>
+          <div style="font-weight:800; font-size:15px;" id="lblRoleChTitle">📺 I am a Channel Owner</div>
+          <div style="font-size:12px; color:#64748b;" id="lblRoleChSub">I own channels and want to monetize.</div>
         </button>
       </div>
-
-      <!-- Step 4: Ad Intention Question -->
-      <div id="stepAdQuestion" style="display: none;">
-        <h3 style="text-align:center; margin-bottom: 6px;" id="lblAdQTitle">ምን ማስተዋወቅ ይፈልጋሉ?</h3>
-        <p class="auth-desc" id="lblAdQSub">የሚያስተዋውቁትን አይነት ይምረጡ፦</p>
-
-        <div class="form-group">
-          <select id="adCategory">
-            <option value="የንግድ ወይም የኢ-ኮሜርስ እቃዎች">🛍️ Business / E-commerce</option>
-            <option value="የቴሌግራም ቻናል ወይም ግሩፕ">📢 Telegram Channel / Group</option>
-            <option value="ዌብሳይት ወይም የሞባይል አፕሊኬሽን">🌐 Website / App</option>
-            <option value="ስራ ወይም የክህሎት ስልጠና">🎓 Job / Training</option>
-            <option value="ክሪፕቶ ወይም የፋይናንስ አገልግሎት">💰 Crypto / Finance</option>
-            <option value="ሌላ ማንኛውም አገልግሎት">✨ Other</option>
-          </select>
-        </div>
-
-        <button class="btn-submit" id="btnFinishOnboard" onclick="finishOnboarding()">ቀጥል ወደ ካታሎግ ➔</button>
-      </div>
-
     </div>
   </div>
 
-  <!-- MAIN DASHBOARD -->
+  <!-- MAIN DASHBOARD (ADS GALAXY DESIGN) -->
   <div id="mainDashboard">
-    <header>
-      <div class="top-bar">
-        <a href="/" class="logo">⚡ EthioAd.io</a>
-        <div class="header-actions">
-          <button class="add-ch-btn" id="btnAddCh" onclick="openAddChannelModal()">+ ቻናል መዝግብ</button>
-          <select id="langSwitcher" class="lang-select-box" onchange="syncAndSwitchLanguage(this.value)">
-            <option value="am">🇪🇹 አማርኛ</option>
-            <option value="en">🇬🇧 English</option>
-            <option value="ar">🇸🇦 العربية</option>
-            <option value="fr">🇫🇷 Français</option>
-            <option value="es">🇪🇸 Español</option>
-            <option value="ru">🇷🇺 Русский</option>
-            <option value="pt">🇵🇹 Português</option>
-            <option value="zh">🇨🇳 中文</option>
-            <option value="hi">🇮🇳 हिन्दी</option>
-            <option value="de">🇩🇪 Deutsch</option>
-            <option value="tr">🇹🇷 Türkçe</option>
-            <option value="it">🇮🇹 Italiano</option>
-            <option value="ja">🇯🇵 日本語</option>
-            <option value="ko">🇰🇷 한국어</option>
-            <option value="sw">🇰🇪 Kiswahili</option>
-          </select>
-          <span style="font-size: 13px; font-weight: 700; color: #16a34a;" id="lblVerifiedBadge">👤 የተረጋገጠ</span>
-        </div>
+    <div class="navbar">
+      <div class="navbar-brand">
+        <span class="menu-icon">☰</span>
+        <span id="navBrandText">Dashboard</span>
       </div>
-    </header>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <select id="langSwitcher" class="lang-select-box" onchange="syncAndSwitchLanguage(this.value)">
+          <option value="am">አማርኛ</option>
+          <option value="en">English</option>
+          <option value="ar">العربية</option>
+          <option value="fr">Français</option>
+          <option value="es">Español</option>
+          <option value="ru">Русский</option>
+          <option value="pt">Português</option>
+          <option value="zh">中文</option>
+          <option value="hi">हिन्दी</option>
+          <option value="de">Deutsch</option>
+          <option value="tr">Türkçe</option>
+          <option value="it">Italiano</option>
+          <option value="ja">日本語</option>
+          <option value="ko">한국어</option>
+          <option value="sw">Kiswahili</option>
+        </select>
+      </div>
+    </div>
 
     <div class="container">
-      <div class="user-badge-banner" id="userBanner">
-        እንኳን ደህና መጡ! ተስማሚ ቻናሎችን ከመረጡ በኋላ በቀጥታ ማስታወቂያዎን መለጠፍ ይችላሉ።
+      <!-- HERO COMMAND CENTER -->
+      <div class="hero-card">
+        <div class="badge-pill">
+          <span>✨</span> <span id="lblPublisherBadge">PUBLISHER COMMAND CENTER</span>
+        </div>
+        <h1 class="hero-title" id="lblHeroTitle">Grow, monetize,<br />withdraw.</h1>
+        <p class="hero-sub" id="lblHeroSub">Your Telegram Inventory, earnings, and monetized assets in one polished control room.</p>
+        <button class="btn-hero" onclick="openAddChannelModal()">
+          <span>↗</span> <span id="lblBtnMonetize">MONETIZE MORE</span>
+        </button>
       </div>
-      <h1 class="page-title" id="txtTitle">የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)</h1>
-      <input type="text" id="searchInput" class="search-input" placeholder="ቻናል ይፈልጉ (Search channels...)" onkeyup="filterChannels()" />
+
+      <!-- 4 TILES METRICS -->
+      <div class="stats-grid">
+        <div class="stat-tile">
+          <div class="stat-icon">🔒</div>
+          <div class="stat-label" id="lblLocked">Locked balance</div>
+          <div class="stat-value">$0.00</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon">💼</div>
+          <div class="stat-label" id="lblAvailable">Available balance</div>
+          <div class="stat-value" style="color:#0284c7;">$0.50</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon">📺</div>
+          <div class="stat-label" id="lblMonetized">Monetized</div>
+          <div class="stat-value" id="countMonetized">0</div>
+        </div>
+        <div class="stat-tile">
+          <div class="stat-icon">⏱️</div>
+          <div class="stat-label" id="lblLifetime">Lifetime withdrawn</div>
+          <div class="stat-value">$0.00</div>
+        </div>
+      </div>
+
+      <!-- RECENT ACTIVITY / CHANNELS INVENTORY -->
+      <div class="section-bar">
+        <div class="section-title" id="lblRecentAct">Recent activity</div>
+        <a class="section-link" onclick="openAddChannelModal()" id="lblViewAll">+ Add Channel ➔</a>
+      </div>
+
+      <input type="text" id="searchInput" class="search-input" placeholder="Search channels..." onkeyup="filterChannels()" />
       <div id="channelsContainer">
-        <p style="text-align: center; color: #64748b;" id="loadingOrEmptyText">ምንም የተመዘገበ ቻናል የለም።</p>
+        <p style="text-align:center; color:#64748b; margin-top:20px;" id="loadingOrEmptyText">No channels registered yet.</p>
       </div>
     </div>
 
@@ -504,99 +532,95 @@
     <div class="modal-overlay" id="addChannelModal">
       <div class="modal-window">
         <span class="modal-close" onclick="closeAddChannelModal()">✕</span>
-        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;" id="lblModalAddTitle">አዲስ ቻናል መመዝገቢያ</h2>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;" id="lblModalAddSub">የቴሌግራም ቻናልዎን እዚህ በቀጥታ ወደ ካታሎጉ ያስገቡ።</p>
-
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:6px;" id="lblModalAddTitle">Add New Inventory</h2>
+        <p style="font-size:13px; color:#64748b; margin-bottom:16px;">List your Telegram channel to start monetizing ads.</p>
         <div class="form-group">
-          <label id="lblChNameInput">የቻናሉ ስም</label>
+          <label>Channel Name</label>
           <input type="text" id="newChName" placeholder="e.g. MR ODDS" />
         </div>
         <div class="form-group">
-          <label id="lblChLinkInput">የቻናሉ ሊንክ</label>
+          <label>Channel Link</label>
           <input type="text" id="newChLink" placeholder="e.g. https://t.me/yourchannel" />
         </div>
         <div class="form-group">
-          <label id="lblChPriceInput">መነሻ ዋጋ በብር (ETB)</label>
+          <label>Base Price (ETB)</label>
           <input type="number" id="newChPrice" placeholder="e.g. 1000" />
         </div>
-
-        <button class="btn-submit" id="btnPublishCh" onclick="submitNewChannel()">ቻናሉን መዝግብ</button>
+        <button class="btn-submit" onclick="submitNewChannel()">Publish Inventory</button>
       </div>
     </div>
 
-    <!-- DIRECT WEB PAYMENT MODAL -->
+    <!-- CHECKOUT MODAL -->
     <div class="modal-overlay" id="paymentModal">
       <div class="modal-window">
         <span class="modal-close" onclick="closePaymentModal()">✕</span>
-        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;" id="lblPayTitle">የማስታወቂያ ክፍያና ማረጋገጫ</h2>
-        <p style="font-size: 13px; color: #64748b; margin-bottom: 14px;" id="payChannelDetails">የቻናሉ መረጃ</p>
+        <h2 style="font-size:20px; font-weight:800; margin-bottom:6px;">Ad Checkout & Placement</h2>
+        <p style="font-size:13px; color:#64748b; margin-bottom:14px;" id="payChannelDetails">Channel Details</p>
 
         <div class="location-tabs" id="locTabsGroup">
-          <button type="button" class="loc-tab-btn active" id="tabInsideEth" onclick="switchPayLocation('local')">🇪🇹 ከኢትዮጵያ ውስጥ (Local)</button>
-          <button type="button" class="loc-tab-btn" id="tabOutsideEth" onclick="switchPayLocation('abroad')">🌍 ከውጭ ሀገር (Abroad)</button>
+          <button type="button" class="loc-tab-btn active" id="tabInsideEth" onclick="switchPayLocation('local')">🇪🇹 Ethiopia (Birr)</button>
+          <button type="button" class="loc-tab-btn" id="tabOutsideEth" onclick="switchPayLocation('abroad')">🌍 Abroad (USD & Stars)</button>
         </div>
 
         <div class="form-group">
-          <label id="lblPayDuration">የማስታወቂያው ቆይታ</label>
+          <label>Ad Duration</label>
           <select id="payDurationSelect" onchange="calculateTotalPay()">
-            <option value="0">24 ሰዓት (1 ቀን)</option>
-            <option value="300">48 ሰዓት (2 ቀናት)</option>
-            <option value="600">1 ሳምንት (7 ቀናት)</option>
-            <option value="900">2 ሳምንታት (14 ቀናት)</option>
-            <option value="1200">1 ወር (30 ቀናት)</option>
+            <option value="0">24h (1 Day)</option>
+            <option value="300">48h (2 Days)</option>
+            <option value="600">1 Week (7 Days)</option>
+            <option value="900">2 Weeks (14 Days)</option>
+            <option value="1200">1 Month (30 Days)</option>
           </select>
         </div>
 
-        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:10px; margin-bottom:14px;">
+        <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:12px; border-radius:12px; margin-bottom:14px;">
           <div style="display:flex; justify-content:space-between; margin-bottom:8px; align-items:center;">
-            <span style="font-size:13px; color:#64748b;" id="lblTotalAmount">አጠቃላይ የሚከፈለው፦</span>
-            <span style="font-size:18px; font-weight:800; color:#16a34a;" id="payTotalText">0 ETB</span>
+            <span style="font-size:13px; color:#64748b;">Total Amount:</span>
+            <span style="font-size:18px; font-weight:900; color:#16a34a;" id="payTotalText">0 ETB</span>
           </div>
 
           <div id="localPaymentDetails" style="font-size:12px; color:#334155; line-height:1.6;">
-            <b>🇪🇹 የሀገር ውስጥ የክፍያ አማራጮች፦</b><br />
-            • <b>ቴሌብር (Telebirr)፦</b> <code>0927943402</code><br />
-            • <b>ንግድ ባንክ (CBE)፦</b> <code>1000785625556</code> (Wo...)<br />
-            • <b>አቢሲንያ ባንክ፦</b> <code>218988407</code><br />
-            • <b>ቴሌግራም ስታርስ (Stars)፦</b> <span id="starsEquivalent">0 ⭐️</span>
+            <b>Local Accounts:</b><br />
+            • Telebirr: <code>0927943402</code><br />
+            • CBE: <code>1000785625556</code> (Wo...)<br />
+            • Abyssinia: <code>218988407</code><br />
+            • Stars: <span id="starsEquivalent">0 ⭐️</span>
           </div>
 
           <div id="abroadPaymentDetails" style="display:none; font-size:12px; color:#334155; line-height:1.6;">
-            <b>🌍 International Payment (USD & Stars):</b><br />
+            <b>International Payment (USD & Stars):</b><br />
             🌟 <b>Telegram Stars:</b> <span id="abroadStarsEquivalent">0 ⭐️</span><br />
-            💎 <b>USDT (TRC20 Address):</b><br />
-            <code style="word-break:break-all; background:#e2e8f0; padding:3px 6px; border-radius:4px; display:block; margin:4px 0;">TSTAsyXoWR8CqWLP2yGaFgJ385vJs2WeR8</code>
-            🔹 <b>USDT / ETH (ERC20 Address):</b><br />
-            <code style="word-break:break-all; background:#e2e8f0; padding:3px 6px; border-radius:4px; display:block; margin:4px 0;">0x8929FF9b5cE44E4c433318D6321AFF2c077Ed9DF</code>
+            💎 <b>USDT (TRC20):</b><br />
+            <code style="word-break:break-all; background:#e2e8f0; padding:2px 4px; border-radius:4px; display:block; margin:3px 0;">TSTAsyXoWR8CqWLP2yGaFgJ385vJs2WeR8</code>
+            🔹 <b>USDT (ERC20):</b><br />
+            <code style="word-break:break-all; background:#e2e8f0; padding:2px 4px; border-radius:4px; display:block; margin:3px 0;">0x8929FF9b5cE44E4c433318D6321AFF2c077Ed9DF</code>
           </div>
         </div>
 
         <div class="form-group">
-          <label id="lblTxRef">የክፍያ ማረጋገጫ ቁጥር / TxID</label>
-          <input type="text" id="payTxRef" placeholder="e.g. FT2609... or USDT TxHash" />
+          <label>Tx Reference / Hash</label>
+          <input type="text" id="payTxRef" placeholder="Transaction ref or TxID" />
         </div>
-
         <div class="form-group">
-          <label id="lblAdContent">የማስታወቂያው ጽሑፍ (Ad Content)</label>
-          <input type="text" id="payAdContent" placeholder="Enter ad text to be posted" />
+          <label>Ad Description / Text</label>
+          <input type="text" id="payAdContent" placeholder="Ad text to be published" />
         </div>
-
-        <button class="btn-submit" id="btnSubmitPayment" onclick="submitDirectPayment()">ክፍያውን አረጋግጥና ማስታወቂያውን ላክ</button>
+        <button class="btn-submit" onclick="submitDirectPayment()">Submit Ad Placement</button>
       </div>
     </div>
 
-    <!-- AI Widget -->
+    <!-- GEMINI 3.8 AI CHAT -->
     <div class="ai-fab" onclick="toggleChat()" title="AI Assistant">💬</div>
     <div class="chat-modal" id="chatModal">
       <div class="chat-header">
-        <span>🤖 Gemini 3.1 Pro Assistant</span>
-        <span class="chat-close" onclick="toggleChat()">✕</span>
+        <span>🤖 Gemini 3.8 Assistant</span>
+        <span style="cursor:pointer;" onclick="toggleChat()">✕</span>
       </div>
       <div class="chat-messages" id="chatMessages">
         <div class="msg bot" id="aiWelcomeMsg">ሰላም! ስለ ቻናሎች ወይም ማስታወቂያ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።</div>
       </div>
       <div class="chat-input-bar">
-        <input type="text" id="aiQuery" placeholder="ጥያቄዎን ይጻፉ..." onkeypress="if(event.key==='Enter') sendAiMessage()" />
+        <input type="text" id="aiQuery" placeholder="AI ረዳቱን ይጠይቁ..." onkeypress="if(event.key==='Enter') sendAiMessage()" />
         <button id="btnAiSend" onclick="sendAiMessage()">ላክ</button>
       </div>
     </div>
@@ -605,9 +629,9 @@
   <script>
     const translations = {
       am: {
-        authDesc: "እንኳን ደህና መጡ! ወደ ቴሌግራም ቻናሎች ካታሎግ ለመግባት ይመዝገቡ ወይም ይግቡ።",
+        authDesc: "እንኳን ደህና መጡ! ወደ አሳታሚዎች መቆጣጠሪያ ማዕከል ለመግባት ይመዝገቡ።",
         google: "በ Google ቀጥል",
-        country: "ሀገርዎን ይምረጡ (250+ Countries):",
+        country: "ሀገርዎን ይምረጡ (250+ አገራት):",
         contact: "ኢሜይል ወይም ስልክ ቁጥር",
         sendCode: "ባለ 5 ዲጂት ኮድ ላክ",
         otpTitle: "ባለ 5 ዲጂቱን ኮድ ያስገቡ",
@@ -616,26 +640,30 @@
         roleHeader: "እርስዎ ማስታወቂያ አሰሪ ነዎት ወይስ ሰሪ?",
         roleSub: "እባክዎ አንዱን ይምረጡ፦",
         roleAdvTitle: "📢 ማስታወቂያ አሰሪ ነኝ (Advertiser)",
-        roleAdvSub: "በቴሌግራም ቻናሎች ላይ ንግዴን ማስተዋወቅ እፈልጋለሁ።",
+        roleAdvSub: "በቴሌግራም ቻናሎች ላይ ማስተዋወቅ እፈልጋለሁ።",
         roleChTitle: "📺 ማስታወቂያ ሰሪ ነኝ (Channel Owner)",
-        roleChSub: "የራሴ የቴሌግራም ቻናል አለኝ፤ ማስታወቂያዎችን አስተናግዳለሁ።",
-        adQTitle: "ምን ማስተዋወቅ ይፈልጋሉ?",
-        adQSub: "የሚያስተዋውቁትን አይነት ይምረጡ፦",
-        finishBtn: "ቀጥል ወደ ካታሎግ ➔",
-        banner: "እንኳን ደህና መጡ! ተስማሚ ቻናሎችን ከመረጡ በኋላ በቀጥታ ማስታወቂያዎን መለጠፍ ይችላሉ።",
-        title: "የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)",
-        search: "ቻናል ይፈልጉ (Search channels...)",
+        roleChSub: "የራሴ ቻናል አለኝ፤ ገቢ ማግኘት እፈልጋለሁ።",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Your Telegram Inventory, earnings, and monetized assets in one polished control room.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
+        search: "ቻናል ይፈልጉ...",
         noChannels: "ምንም የተመዘገበ ቻናል የለም።",
         views: "እይታ",
         buy: "ማስታወቂያ ይግዙ ➔",
-        addChBtn: "+ ቻናል መዝግብ",
-        aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ማስታወቂያ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።",
-        inputPlaceholder: "ጥያቄዎን ይጻፉ...",
-        send: "ላክ",
-        verified: "👤 የተረጋገጠ"
+        aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ገቢ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።",
+        aiPlaceholder: "AI ረዳቱን ይጠይቁ...",
+        send: "ላክ"
       },
       en: {
-        authDesc: "Welcome! Sign in or Sign up to access Telegram Channels Catalog.",
+        authDesc: "Welcome! Sign in to access your Publisher Command Center.",
         google: "Continue with Google",
         country: "Select Country (250+ Countries):",
         contact: "Email or Phone Number",
@@ -646,26 +674,30 @@
         roleHeader: "Are you an Advertiser or a Channel Owner?",
         roleSub: "Please select an option:",
         roleAdvTitle: "📢 I am an Advertiser",
-        roleAdvSub: "I want to promote my business or products on channels.",
+        roleAdvSub: "I want to promote products or channels.",
         roleChTitle: "📺 I am a Channel Owner",
-        roleChSub: "I own Telegram channels and want to monetize ads.",
-        adQTitle: "What do you want to advertise?",
-        adQSub: "Select category:",
-        finishBtn: "Continue to Dashboard ➔",
-        banner: "Welcome! Select any channel below to order and publish your advertisement.",
-        title: "Telegram Channels Catalog",
+        roleChSub: "I own channels and want to monetize.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Your Telegram Inventory, earnings, and monetized assets in one polished control room.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Search channels...",
         noChannels: "No channels registered yet.",
         views: "Views",
         buy: "Buy Ad ➔",
-        addChBtn: "+ Add Channel",
-        aiWelcome: "Hello! Ask me any question regarding channels or buying ads.",
-        inputPlaceholder: "Type your question...",
-        send: "Send",
-        verified: "👤 Verified"
+        aiWelcome: "Hello! Ask me any question regarding channels or monetization.",
+        aiPlaceholder: "Ask AI...",
+        send: "Send"
       },
       ar: {
-        authDesc: "أهلاً بك! سجّل الدخول أو أنشئ حساباً لعرض قنوات التيليجرام.",
+        authDesc: "أهلاً بك! سجّل الدخول للوصول إلى لوحة التحكم.",
         google: "المتابعة باستخدام Google",
         country: "اختر الدولة (250+ دولة):",
         contact: "البريد الإلكتروني أو الهاتف",
@@ -676,26 +708,30 @@
         roleHeader: "هل أنت معلن أم صاحب قناة؟",
         roleSub: "يرجى الاختيار:",
         roleAdvTitle: "📢 أنا معلن",
-        roleAdvSub: "أريد الإعلان عن نشاطي التجاري في القنوات.",
+        roleAdvSub: "أريد الإعلان في القنوات.",
         roleChTitle: "📺 أنا صاحب قناة",
-        roleChSub: "أمتلك قنوات تيليجرام وأرغب بنشر الإعلانات.",
-        adQTitle: "ماذا تريد أن تعلن؟",
-        adQSub: "اختر الفئة:",
-        finishBtn: "الانتقال إلى الدليل ➔",
-        banner: "أهلاً بك! اختر أي قناة أدناه لنشر إعلانك بسهولة.",
-        title: "دليل قنوات التيليجرام",
+        roleChSub: "أمتلك قنوات وأرغب بتحقيق الدخل.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "قنوات التيليجرام وأرباحك في مركز تحكم واحد متطور.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "ابحث عن القنوات...",
         noChannels: "لا توجد قنوات مسجلة بعد.",
         views: "المشاهدات",
         buy: "شراء إعلان ➔",
-        addChBtn: "+ إضافة قناة",
-        aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.",
-        inputPlaceholder: "اكتب سؤالك...",
-        send: "إرسال",
-        verified: "👤 تم التحقق"
+        aiWelcome: "مرحباً! اسألني عن القنوات وكيفية تحقيق الدخل.",
+        aiPlaceholder: "اسأل الذكاء الاصطناعي...",
+        send: "إرسال"
       },
       fr: {
-        authDesc: "Bienvenue! Connectez-vous pour accéder au catalogue de chaînes.",
+        authDesc: "Bienvenue! Connectez-vous à votre tableau de bord.",
         google: "Continuer avec Google",
         country: "Sélectionnez le pays (250+ pays):",
         contact: "Email ou Téléphone",
@@ -706,26 +742,30 @@
         roleHeader: "Êtes-vous un annonceur ou un créateur?",
         roleSub: "Veuillez choisir:",
         roleAdvTitle: "📢 Je suis annonceur",
-        roleAdvSub: "Je souhaite diffuser des publicités sur les chaînes.",
+        roleAdvSub: "Je souhaite promouvoir sur les chaînes.",
         roleChTitle: "📺 Je possède une chaîne",
-        roleChSub: "Je possède des chaînes et souhaite héberger des pubs.",
-        adQTitle: "Que souhaitez-vous promouvoir?",
-        adQSub: "Sélectionnez une catégorie:",
-        finishBtn: "Continuer vers le catalogue ➔",
-        banner: "Bienvenue! Choisissez une chaîne ci-dessous pour publier votre annonce.",
-        title: "Catalogue des chaînes Telegram",
+        roleChSub: "Je possède des chaînes et souhaite monétiser.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Votre inventaire Telegram et vos revenus dans une interface élégante.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Rechercher des chaînes...",
-        noChannels: "Aucune chaîne enregistrée pour le moment.",
+        noChannels: "Aucune chaîne enregistrée.",
         views: "Vues",
         buy: "Acheter pub ➔",
-        addChBtn: "+ Ajouter une chaîne",
-        aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.",
-        inputPlaceholder: "Écrivez votre message...",
-        send: "Envoyer",
-        verified: "👤 Vérifié"
+        aiWelcome: "Bonjour! Posez vos questions sur la monétisation et les chaînes.",
+        aiPlaceholder: "Demandez à l'IA...",
+        send: "Envoyer"
       },
       es: {
-        authDesc: "¡Bienvenido! Inicie sesión para ver los canales de Telegram.",
+        authDesc: "¡Bienvenido! Inicia sesión para acceder a tu panel de control.",
         google: "Continuar con Google",
         country: "Seleccione país (250+ países):",
         contact: "Correo electrónico o teléfono",
@@ -736,29 +776,33 @@
         roleHeader: "¿Es anunciante o dueño de canal?",
         roleSub: "Seleccione una opción:",
         roleAdvTitle: "📢 Soy Anunciante",
-        roleAdvSub: "Quiero promocionar mis productos o negocios.",
+        roleAdvSub: "Quiero promocionar en canales.",
         roleChTitle: "📺 Soy dueño de canal",
-        roleChSub: "Tengo canales de Telegram para publicar anuncios.",
-        adQTitle: "¿Qué desea promocionar?",
-        adQSub: "Seleccione la categoría:",
-        finishBtn: "Ir al Catálogo ➔",
-        banner: "¡Bienvenido! Seleccione un canal para publicar su anuncio fácilmente.",
-        title: "Catálogo de Canales de Telegram",
+        roleChSub: "Tengo canales y quiero monetizar.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Tu inventario de Telegram y ganancias en una sala de control moderna.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Buscar canales...",
         noChannels: "Aún no hay canales registrados.",
         views: "Vistas",
         buy: "Comprar Anuncio ➔",
-        addChBtn: "+ Agregar Canal",
-        aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o compra de anuncios.",
-        inputPlaceholder: "Escribe tu pregunta...",
-        send: "Enviar",
-        verified: "👤 Verificado"
+        aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o monetización.",
+        aiPlaceholder: "Pregunta a la IA...",
+        send: "Enviar"
       },
       ru: {
-        authDesc: "Добро пожаловать! Войдите, чтобы просмотреть каналы.",
+        authDesc: "Добро пожаловать! Войдите в панель управления издателя.",
         google: "Продолжить через Google",
         country: "Выберите страну (250+ стран):",
-        contact: "Email или номер телефона",
+        contact: "Email или телефон",
         sendCode: "Отправить 5-значный код",
         otpTitle: "Введите 5-значный код",
         resend: "Изменить контакт / Повторить",
@@ -766,26 +810,30 @@
         roleHeader: "Вы рекламодатель или владелец канала?",
         roleSub: "Пожалуйста, выберите:",
         roleAdvTitle: "📢 Я рекламодатель",
-        roleAdvSub: "Хочу размещать рекламу в Telegram-каналах.",
+        roleAdvSub: "Хочу размещать рекламу.",
         roleChTitle: "📺 Я владелец канала",
-        roleChSub: "У меня есть каналы для размещения рекламы.",
-        adQTitle: "Что вы хотите рекламировать?",
-        adQSub: "Выберите категорию:",
-        finishBtn: "Перейти к каталогу ➔",
-        banner: "Добро пожаловать! Выберите подходящий канал для размещения рекламы.",
-        title: "Каталог Telegram-каналов",
+        roleChSub: "У меня есть каналы для заработка.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Ваши Telegram-каналы и доходы в едином удобном интерфейсе.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Поиск каналов...",
-        noChannels: "Пока нет зарегистрированных каналов.",
+        noChannels: "Пока нет каналов.",
         views: "Просмотры",
         buy: "Купить рекламу ➔",
-        addChBtn: "+ Добавить канал",
-        aiWelcome: "Здравствуйте! Задайте вопрос об авторах, каналах или рекламе.",
-        inputPlaceholder: "Введите ваш вопрос...",
-        send: "Отправить",
-        verified: "👤 Проверено"
+        aiWelcome: "Здравствуйте! Задайте любой вопрос о каналах и заработке.",
+        aiPlaceholder: "Спросите ИИ...",
+        send: "Отправить"
       },
       pt: {
-        authDesc: "Bem-vindo! Entre para acessar o catálogo de canais.",
+        authDesc: "Bem-vindo! Acesse sua central de controle de publicador.",
         google: "Continuar com Google",
         country: "Selecione o país (250+ países):",
         contact: "Email ou telefone",
@@ -796,26 +844,30 @@
         roleHeader: "Você é anunciante ou dono de canal?",
         roleSub: "Selecione uma opção:",
         roleAdvTitle: "📢 Sou Anunciante",
-        roleAdvSub: "Quero anunciar em canais do Telegram.",
+        roleAdvSub: "Quero anunciar em canais.",
         roleChTitle: "📺 Sou Dono de Canal",
-        roleChSub: "Tenho canais para veicular anúncios.",
-        adQTitle: "O que deseja divulgar?",
-        adQSub: "Escolha o segmento:",
-        finishBtn: "Ir para o Catálogo ➔",
-        banner: "Bem-vindo! Escolha um canal abaixo para publicar seu anúncio.",
-        title: "Catálogo de Canais do Telegram",
+        roleChSub: "Tenho canais e quero monetizar.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Seu inventário do Telegram e ganhos em um único painel.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Pesquisar canais...",
-        noChannels: "Nenhum canal registrado ainda.",
+        noChannels: "Nenhum canal registrado.",
         views: "Visualizações",
         buy: "Comprar Anúncio ➔",
-        addChBtn: "+ Adicionar Canal",
-        aiWelcome: "Olá! Pergunte qualquer dúvida sobre os canais ou anúncios.",
-        inputPlaceholder: "Digite sua pergunta...",
-        send: "Enviar",
-        verified: "👤 Verificado"
+        aiWelcome: "Olá! Pergunte qualquer dúvida sobre canais ou monetização.",
+        aiPlaceholder: "Pergunte à IA...",
+        send: "Enviar"
       },
       zh: {
-        authDesc: "欢迎！请登录以访问电报频道目录。",
+        authDesc: "欢迎！登录以访问您的发布商控制中心。",
         google: "使用 Google 继续",
         country: "选择国家/地区 (250+ 国家)：",
         contact: "邮箱或手机号",
@@ -826,26 +878,30 @@
         roleHeader: "您是广告主还是频道主？",
         roleSub: "请选择：",
         roleAdvTitle: "📢 我是广告主",
-        roleAdvSub: "我想在频道中投放广告。",
+        roleAdvSub: "我想在频道投放广告。",
         roleChTitle: "📺 我是频道主",
-        roleChSub: "我拥有频道并承接广告业务。",
-        adQTitle: "您想推广什么？",
-        adQSub: "选择类别：",
-        finishBtn: "进入目录 ➔",
-        banner: "欢迎！选择下方频道，快速发布您的电报广告。",
-        title: "Telegram 频道目录",
+        roleChSub: "我拥有频道并想变现。",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "在一个精致的控制室中管理您的电报资产和收益。",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "搜索频道...",
-        noChannels: "暂无已注册的频道。",
+        noChannels: "暂无已注册频道。",
         views: "浏览量",
         buy: "购买广告 ➔",
-        addChBtn: "+ 添加频道",
-        aiWelcome: "您好！有关频道或投放广告的任何问题，随时向我提问。",
-        inputPlaceholder: "输入您的问题...",
-        send: "发送",
-        verified: "👤 已验证"
+        aiWelcome: "您好！有关频道推广或变现的问题随时问我。",
+        aiPlaceholder: "向 AI 提问...",
+        send: "发送"
       },
       hi: {
-        authDesc: "स्वागत है! टेलीग्राम चैनल कैटलॉग तक पहुँचने के लिए साइन इन करें।",
+        authDesc: "स्वागत है! अपने प्रकाशक कमांड सेंटर तक पहुँचने के लिए साइन इन करें।",
         google: "Google के साथ जारी रखें",
         country: "देश चुनें (250+ देश):",
         contact: "ईमेल या फ़ोन नंबर",
@@ -855,27 +911,31 @@
         verifyBtn: "सत्यापित करें और आगे बढ़ें ➔",
         roleHeader: "क्या आप विज्ञापनदाता हैं या चैनल के मालिक?",
         roleSub: "कृपया एक चुनें:",
-        roleAdvTitle: "📢 मैं एक विज्ञापनदाता हूँ",
-        roleAdvSub: "मैं चैनलों पर विज्ञापन देना चाहता हूँ।",
+        roleAdvTitle: "📢 मैं विज्ञापनदाता हूँ",
+        roleAdvSub: "मैं चैनलों पर प्रचार करना चाहता हूँ।",
         roleChTitle: "📺 मैं चैनल का मालिक हूँ",
-        roleChSub: "मेरे पास विज्ञापन दिखाने के लिए चैनल हैं।",
-        adQTitle: "आप किस चीज़ का प्रचार करना चाहते हैं?",
-        adQSub: "श्रेणी चुनें:",
-        finishBtn: "कैटलॉग पर जाएँ ➔",
-        banner: "स्वागत है! विज्ञापन प्रकाशित करने के लिए नीचे किसी भी चैनल का चयन करें।",
-        title: "टेलीग्राम चैनल कैटलॉग",
+        roleChSub: "मेरे पास चैनल हैं और मैं कमाना चाहता हूँ।",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "आपकी टेलीग्राम संपत्ति और आय एक आधुनिक डैशबोर्ड में।",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "चैनल खोजें...",
-        noChannels: "अभी तक कोई चैनल पंजीकृत नहीं है।",
+        noChannels: "कोई चैनल पंजीकृत नहीं है।",
         views: "देखे गए",
         buy: "विज्ञापन खरीदें ➔",
-        addChBtn: "+ चैनल जोड़ें",
-        aiWelcome: "नमस्ते! चैनलों या विज्ञापन खरीदने के बारे में कोई भी प्रश्न पूछें।",
-        inputPlaceholder: "अपना प्रश्न लिखें...",
-        send: "भेजें",
-        verified: "👤 सत्यापित"
+        aiWelcome: "नमस्ते! चैनलों और मुद्रीकरण के बारे में कुछ भी पूछें।",
+        aiPlaceholder: "AI से पूछें...",
+        send: "भेजें"
       },
       de: {
-        authDesc: "Willkommen! Melden Sie sich an, um den Katalog zu sehen.",
+        authDesc: "Willkommen! Melden Sie sich in Ihrer Publisher-Zentrale an.",
         google: "Mit Google fortfahren",
         country: "Land auswählen (250+ Länder):",
         contact: "E-Mail oder Telefon",
@@ -886,26 +946,30 @@
         roleHeader: "Sind Sie Werbetreibender oder Kanalbesitzer?",
         roleSub: "Bitte wählen:",
         roleAdvTitle: "📢 Ich bin Werbetreibender",
-        roleAdvSub: "Ich möchte Werbung auf Kanälen buchen.",
+        roleAdvSub: "Ich möchte Werbung schalten.",
         roleChTitle: "📺 Ich bin Kanalbesitzer",
-        roleChSub: "Ich besitze Telegram-Kanäle für Werbung.",
-        adQTitle: "Was möchten Sie bewerben?",
-        adQSub: "Kategorie wählen:",
-        finishBtn: "Weiter zum Katalog ➔",
-        banner: "Willkommen! Wählen Sie unten einen Kanal aus, um Werbung zu buchen.",
-        title: "Telegram-Kanal-Katalog",
+        roleChSub: "Ich besitze Kanäle und möchte monetarisieren.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Ihr Telegram-Inventar und Ihre Einnahmen an einem Ort.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Kanäle durchsuchen...",
         noChannels: "Noch keine Kanäle registriert.",
         views: "Aufrufe",
         buy: "Werbung kaufen ➔",
-        addChBtn: "+ Kanal hinzufügen",
-        aiWelcome: "Hallo! Fragen Sie unseren KI-Assistenten nach Kanälen oder Werbung.",
-        inputPlaceholder: "Geben Sie Ihre Frage ein...",
-        send: "Senden",
-        verified: "👤 Verifiziert"
+        aiWelcome: "Hallo! Fragen Sie mich alles über Kanäle und Einnahmen.",
+        aiPlaceholder: "KI fragen...",
+        send: "Senden"
       },
       tr: {
-        authDesc: "Hoş geldiniz! Kanalları görmek için giriş yapın.",
+        authDesc: "Hoş geldiniz! Yayıncı Kontrol Merkezine erişmek için giriş yapın.",
         google: "Google ile Devam Et",
         country: "Ülke seçin (250+ Ülke):",
         contact: "E-posta veya telefon",
@@ -916,26 +980,30 @@
         roleHeader: "Reklamveren misiniz yoksa kanal sahibi mi?",
         roleSub: "Lütfen seçin:",
         roleAdvTitle: "📢 Reklamverenim",
-        roleAdvSub: "Kanallarda tanıtım yapmak istiyorum.",
+        roleAdvSub: "Kanallarda reklam vermek istiyorum.",
         roleChTitle: "📺 Kanal Sahibiyim",
-        roleChSub: "Kanallarımda reklam yayınlamak istiyorum.",
-        adQTitle: "Neyi tanıtmak istiyorsunuz?",
-        adQSub: "Kategori seçin:",
-        finishBtn: "Kataloğa Git ➔",
-        banner: "Hoş geldiniz! Reklam vermek istediğiniz kanalı aşağıdan seçin.",
-        title: "Telegram Kanal Kataloğu",
+        roleChSub: "Kanallarımdan para kazanmak istiyorum.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Telegram envanteriniz ve kazançlarınız tek bir kontrol merkezinde.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Kanal ara...",
-        noChannels: "Henüz kayıtlı kanal bulunmamaktadır.",
+        noChannels: "Henüz kayıtlı kanal yok.",
         views: "Görüntüleme",
         buy: "Reklam Satın Al ➔",
-        addChBtn: "+ Kanal Ekle",
-        aiWelcome: "Merhaba! Kanallar veya reklam satın alma ile ilgili sorularınızı sorun.",
-        inputPlaceholder: "Sorunuzu yazın...",
-        send: "Gönder",
-        verified: "👤 Doğrulandı"
+        aiWelcome: "Merhaba! Kanallar veya para kazanma hakkında soru sorabilirsiniz.",
+        aiPlaceholder: "Yapay zekaya sor...",
+        send: "Gönder"
       },
       it: {
-        authDesc: "Benvenuto! Accedi per visualizzare il catalogo dei canali.",
+        authDesc: "Benvenuto! Accedi al centro di comando del publisher.",
         google: "Continua con Google",
         country: "Seleziona paese (250+ paesi):",
         contact: "Email o Telefono",
@@ -946,26 +1014,30 @@
         roleHeader: "Sei un inserzionista o proprietario di un canale?",
         roleSub: "Seleziona un'opzione:",
         roleAdvTitle: "📢 Sono un Inserzionista",
-        roleAdvSub: "Voglio pubblicare annunci sui canali.",
+        roleAdvSub: "Voglio pubblicare annunci.",
         roleChTitle: "📺 Sono Proprietario di Canale",
-        roleChSub: "Ho canali per ospitare pubblicità.",
-        adQTitle: "Cosa vuoi pubblicizzare?",
-        adQSub: "Seleziona categoria:",
-        finishBtn: "Vai al Catalogo ➔",
-        banner: "Benvenuto! Seleziona un canale sottostante per prenotare il tuo annuncio.",
-        title: "Catalogo Canali Telegram",
+        roleChSub: "Possiedo canali e voglio monetizzare.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Il tuo inventario Telegram e i guadagni in una sola interfaccia.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Cerca canali...",
-        noChannels: "Nessun canale registrato al momento.",
+        noChannels: "Nessun canale registrato.",
         views: "Visualizzazioni",
         buy: "Acquista annuncio ➔",
-        addChBtn: "+ Aggiungi canale",
-        aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali o sull'acquisto di annunci.",
-        inputPlaceholder: "Scrivi la tua domanda...",
-        send: "Invia",
-        verified: "👤 Verificato"
+        aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali e sulla monetizzazione.",
+        aiPlaceholder: "Chiedi all'IA...",
+        send: "Invia"
       },
       ja: {
-        authDesc: "ようこそ！カタログを閲覧するにはログインしてください。",
+        authDesc: "ようこそ！パブリッシャーコマンドセンターへログインしてください。",
         google: "Google でログイン",
         country: "国を選択 (250+ ヵ国)：",
         contact: "メールアドレスまたは電話番号",
@@ -976,26 +1048,30 @@
         roleHeader: "広告主様ですか、チャンネル所有者様ですか？",
         roleSub: "選択してください：",
         roleAdvTitle: "📢 広告主です",
-        roleAdvSub: "チャンネルに広告を出稿したい。",
+        roleAdvSub: "広告を掲載したい。",
         roleChTitle: "📺 チャンネル所有者です",
-        roleChSub: "チャンネルで広告を受け入れたい。",
-        adQTitle: "何を宣伝しますか？",
-        adQSub: "カテゴリーを選択：",
-        finishBtn: "カタログへ進む ➔",
-        banner: "ようこそ！下のチャンネルを選択して広告を掲載しましょう。",
-        title: "Telegram チャンネルカタログ",
+        roleChSub: "チャンネルで収益化したい。",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "テレグラム資産と収益を洗練された1つの管理画面で。",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "チャンネルを検索...",
-        noChannels: "登録されているチャンネルはまだありません。",
+        noChannels: "登録チャンネルがありません。",
         views: "閲覧数",
         buy: "広告を購入 ➔",
-        addChBtn: "+ チャンネル追加",
-        aiWelcome: "こんにちは！チャンネルや広告購入について何でもお尋ねください。",
-        inputPlaceholder: "質問を入力...",
-        send: "送信",
-        verified: "👤 認証済み"
+        aiWelcome: "こんにちは！チャンネルや収益化について何でもご質問ください。",
+        aiPlaceholder: "AIに尋ねる...",
+        send: "送信"
       },
       ko: {
-        authDesc: "환영합니다! 채널 목록을 보려면 로그인하세요.",
+        authDesc: "환영합니다! 게시자 커맨드 센터에 로그인하세요.",
         google: "Google 계정으로 계속",
         country: "국가 선택 (250+ 국가):",
         contact: "이메일 또는 전화번호",
@@ -1006,26 +1082,30 @@
         roleHeader: "광고주이신가요, 채널 소유자이신가요?",
         roleSub: "선택해 주세요:",
         roleAdvTitle: "📢 광고주입니다",
-        roleAdvSub: "채널에 광고를 게재하고 싶습니다.",
+        roleAdvSub: "광고를 집행하고 싶습니다.",
         roleChTitle: "📺 채널 소유자입니다",
-        roleChSub: "광고를 수주할 채널을 보유하고 있습니다.",
-        adQTitle: "무엇을 홍보하고 싶으신가요?",
-        adQSub: "카테고리 선택:",
-        finishBtn: "카탈로그로 이동 ➔",
-        banner: "환영합니다! 아래에서 채널을 선택하여 광고를 게재하세요.",
-        title: "텔레그램 채널 카탈로그",
+        roleChSub: "채널로 수익을 창출하고 싶습니다.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "텔레그램 자산과 수익을 세련된 대시보드에서 한눈에 관리하세요.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "채널 검색...",
-        noChannels: "아직 등록된 채널이 없습니다.",
+        noChannels: "등록된 채널이 없습니다.",
         views: "조회수",
         buy: "광고 구매 ➔",
-        addChBtn: "+ 채널 추가",
-        aiWelcome: "안녕하세요! 채널 등록이나 광고 구매에 관해 질문해 주세요.",
-        inputPlaceholder: "질문을 입력하세요...",
-        send: "보내기",
-        verified: "👤 인증됨"
+        aiWelcome: "안녕하세요! 채널 및 수익 창출에 관해 질문해 주세요.",
+        aiPlaceholder: "AI에게 질문하기...",
+        send: "보내기"
       },
       sw: {
-        authDesc: "Karibu! Ingia ili uweze kutazama orodha ya idhaa.",
+        authDesc: "Karibu! Ingia kwenye Kituo cha Amri cha Wachapishaji.",
         google: "Endelea na Google",
         country: "Chagua Nchi (250+ nchi):",
         contact: "Barua pepe au Nambari ya Simu",
@@ -1036,27 +1116,31 @@
         roleHeader: "Wewe ni Mtangazaji au Mmiliki wa Idhaa?",
         roleSub: "Tafadhali chagua:",
         roleAdvTitle: "📢 Mimi ni Mtangazaji",
-        roleAdvSub: "Ninataka kutangaza biashara yangu kwenye idhaa.",
+        roleAdvSub: "Ninataka kutangaza kwenye idhaa.",
         roleChTitle: "📺 Mimi ni Mmiliki wa Idhaa",
-        roleChSub: "Nina idhaa za Telegram za kuweka matangazo.",
-        adQTitle: "Unataka kutangaza nini?",
-        adQSub: "Chagua aina:",
-        finishBtn: "Endelea kwenye Orodha ➔",
-        banner: "Karibu! Chagua idhaa yoyote hapa chini kuweka tangazo lako.",
-        title: "Orodha ya Idhaa za Telegram",
+        roleChSub: "Nina idhaa na nataka kupata mapato.",
+        navBrand: "Dashboard",
+        publisherBadge: "PUBLISHER COMMAND CENTER",
+        heroTitle: "Grow, monetize,<br />withdraw.",
+        heroSub: "Mali zako za Telegram na mapato katika chumba kimoja nadhifu cha udhibiti.",
+        btnMonetize: "MONETIZE MORE",
+        locked: "Locked balance",
+        available: "Available balance",
+        monetized: "Monetized",
+        lifetime: "Lifetime withdrawn",
+        recentAct: "Recent activity",
+        viewAll: "+ Add Channel ➔",
         search: "Tafuta idhaa...",
-        noChannels: "Hakuna idhaa zilizosajiliwa bado.",
+        noChannels: "Hakuna idhaa iliyosajiliwa.",
         views: "Watazamaji",
         buy: "Nunua Tangazo ➔",
-        addChBtn: "+ Sajili Idhaa",
-        aiWelcome: "Jambo! Uliza swali lolote kuhusu idhaa au matangazo.",
-        inputPlaceholder: "Andika swali lako...",
-        send: "Tuma",
-        verified: "👤 Imethibitishwa"
+        aiWelcome: "Jambo! Niulize swali lolote kuhusu idhaa na mapato.",
+        aiPlaceholder: "Uliza AI...",
+        send: "Tuma"
       }
     };
 
-    let userOriginLocation = 'local'; // 'local' or 'abroad'
+    let userOriginLocation = 'local';
 
     function handleCountryChange(val) {
       if (val === '+251') {
@@ -1071,6 +1155,7 @@
       document.getElementById('langSwitcher').value = lang;
 
       const t = translations[lang] || translations.am;
+
       document.getElementById('lblAuthDesc').innerText = t.authDesc;
       document.getElementById('lblGoogle').innerText = t.google;
       document.getElementById('lblCountrySelect').innerText = t.country;
@@ -1087,17 +1172,22 @@
       document.getElementById('lblRoleChTitle').innerText = t.roleChTitle;
       document.getElementById('lblRoleChSub').innerText = t.roleChSub;
 
-      document.getElementById('lblAdQTitle').innerText = t.adQTitle;
-      document.getElementById('lblAdQSub').innerText = t.adQSub;
-      document.getElementById('btnFinishOnboard').innerText = t.finishBtn;
+      document.getElementById('navBrandText').innerText = t.navBrand;
+      document.getElementById('lblPublisherBadge').innerText = t.publisherBadge;
+      document.getElementById('lblHeroTitle').innerHTML = t.heroTitle;
+      document.getElementById('lblHeroSub').innerText = t.heroSub;
+      document.getElementById('lblBtnMonetize').innerText = t.btnMonetize;
 
-      document.getElementById('userBanner').innerText = t.banner;
-      document.getElementById('txtTitle').innerText = t.title;
+      document.getElementById('lblLocked').innerText = t.locked;
+      document.getElementById('lblAvailable').innerText = t.available;
+      document.getElementById('lblMonetized').innerText = t.monetized;
+      document.getElementById('lblLifetime').innerText = t.lifetime;
+      document.getElementById('lblRecentAct').innerText = t.recentAct;
+      document.getElementById('lblViewAll').innerText = t.viewAll;
+
       document.getElementById('searchInput').placeholder = t.search;
-      document.getElementById('lblVerifiedBadge').innerText = t.verified;
-      document.getElementById('btnAddCh').innerText = t.addChBtn;
       document.getElementById('aiWelcomeMsg').innerText = t.aiWelcome;
-      document.getElementById('aiQuery').placeholder = t.inputPlaceholder;
+      document.getElementById('aiQuery').placeholder = t.aiPlaceholder;
       document.getElementById('btnAiSend').innerText = t.send;
 
       renderChannels(allChannels);
@@ -1129,7 +1219,6 @@
           body: JSON.stringify({ contact: contact, country_code: countryCode })
         });
         const data = await res.json();
-        
         const currentLang = document.getElementById('authLangSwitcher').value;
         document.getElementById('btnSendOtp').innerText = (translations[currentLang] || translations.am).sendCode;
 
@@ -1179,11 +1268,11 @@
         if (data.status === 'ok') {
           moveToRoleSelection();
         } else {
-          alert("❌ Invalid code (Wrong OTP)! Please check the code.");
+          alert("❌ Wrong OTP! The verification code you entered is incorrect.");
         }
       } catch (e) {
         document.getElementById('btnVerifySubmit').innerText = "Verify & Proceed ➔";
-        alert("❌ Invalid code (Wrong OTP)!");
+        alert("❌ Wrong OTP! Verification failed.");
       }
     }
 
@@ -1199,11 +1288,8 @@
     }
 
     function chooseRole(role) {
-      if (role === 'advertiser') {
-        document.getElementById('stepRole').style.display = 'none';
-        document.getElementById('stepAdQuestion').style.display = 'block';
-      } else {
-        finishOnboarding();
+      finishOnboarding();
+      if (role === 'creator') {
         openAddChannelModal();
       }
     }
@@ -1260,7 +1346,6 @@
       document.getElementById('payChannelDetails').innerText = `Channel: ${currentSelectedChannel.channel_name} (${currentSelectedChannel.channel_link})`;
       document.getElementById('payDurationSelect').value = "0";
 
-      // Agar country Ethiopia nahi hai to automatically abroad lock ho jayega
       if (userOriginLocation === 'abroad') {
         switchPayLocation('abroad');
         document.getElementById('locTabsGroup').style.display = 'none';
@@ -1307,7 +1392,6 @@
         const stars = Math.max(1, Math.round((totalEtb / 125) * 50));
         document.getElementById('starsEquivalent').innerText = `${stars} ⭐️`;
       } else {
-        // Commission hidden added (+ $10)
         const baseUsd = Math.round((totalEtb / 125) * 100) / 100;
         const totalUsd = (baseUsd + 10).toFixed(2);
         const abroadStars = Math.max(1, Math.round(totalUsd * 50));
@@ -1323,7 +1407,7 @@
       const durationLabel = document.getElementById('payDurationSelect').options[document.getElementById('payDurationSelect').selectedIndex].text;
 
       if (!txRef || !adText) {
-        alert("Please provide the transaction reference and ad text.");
+        alert("Please provide the transaction reference and ad description.");
         return;
       }
 
@@ -1345,7 +1429,7 @@
         });
         const data = await res.json();
         if (data.status === 'ok') {
-          alert("🎉 Payment information submitted successfully! The admin will review and post your ad.");
+          alert("🎉 Payment information submitted! The admin will review and publish your ad.");
           closePaymentModal();
         } else {
           alert("Error: " + data.message);
@@ -1360,6 +1444,7 @@
       try {
         const res = await fetch('/api/channels');
         allChannels = await res.json();
+        document.getElementById('countMonetized').innerText = allChannels.length;
         renderChannels(allChannels);
       } catch (e) {}
     }
@@ -1370,26 +1455,22 @@
       const t = translations[lang] || translations.am;
 
       if (!channels || channels.length === 0) {
-        container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:16px; margin-top:20px;">${t.noChannels}</p>`;
+        container.innerHTML = `<p style="text-align:center; color:#64748b; font-size:14px; margin-top:20px;">${t.noChannels}</p>`;
         return;
       }
 
       container.innerHTML = channels.map(ch => `
         <div class="channel-card">
-          <div class="card-header">
-            <div class="channel-icon">${ch.channel_name.charAt(0).toUpperCase()}</div>
+          <div class="ch-left">
+            <div class="ch-icon">${ch.channel_name.charAt(0).toUpperCase()}</div>
             <div>
-              <div class="ch-title">${ch.channel_name}</div>
-              <a href="${ch.channel_link}" target="_blank" class="ch-link">${ch.channel_link}</a>
+              <div class="ch-name">${ch.channel_name}</div>
+              <a href="${ch.channel_link}" target="_blank" style="font-size:12px; color:#64748b; text-decoration:none;">${ch.channel_link}</a>
             </div>
           </div>
-          <div class="ch-stats">
-            <div><div class="stat-val">Active</div><div class="stat-lbl">Status</div></div>
-            <div><div class="stat-val">5K - 50K</div><div class="stat-lbl">${t.views}</div></div>
-          </div>
-          <div class="card-action">
-            <div class="price-tag">${ch.final_price} ETB</div>
-            <button onclick="openPaymentModal(${ch.id})" class="buy-btn">${t.buy}</button>
+          <div>
+            <div class="ch-price">${ch.final_price} ETB</div>
+            <button onclick="openPaymentModal(${ch.id})" class="btn-buy-sm">${t.buy}</button>
           </div>
         </div>
       `).join('');
