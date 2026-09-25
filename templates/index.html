@@ -67,6 +67,9 @@
     header { background: #fff; border-bottom: 1px solid #e1e4e8; padding: 12px 16px; position: sticky; top: 0; z-index: 100; }
     .top-bar { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; }
     .logo { font-size: 20px; font-weight: 800; color: #0088cc; text-decoration: none; }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .add-ch-btn { background: #10b981; color: #fff; border: none; padding: 8px 14px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
+    .add-ch-btn:hover { background: #059669; }
 
     .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
     .user-badge-banner { background: #eff6ff; border: 1px solid #bfdbfe; color: #1e40af; padding: 12px 16px; border-radius: 10px; font-size: 13px; margin-bottom: 16px; font-weight: 600; }
@@ -84,6 +87,11 @@
     .card-action { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
     .price-tag { font-size: 18px; font-weight: 800; color: #16a34a; }
     .buy-btn { background: #16a34a; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; }
+
+    /* ADD CHANNEL MODAL */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000; align-items: center; justify-content: center; padding: 16px; }
+    .modal-window { background: #fff; width: 100%; max-width: 440px; border-radius: 16px; padding: 24px; position: relative; }
+    .modal-close { position: absolute; right: 18px; top: 16px; cursor: pointer; font-size: 20px; font-weight: bold; color: #94a3b8; }
 
     /* AI Widget */
     .ai-fab { position: fixed; bottom: 25px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.4); z-index: 999; }
@@ -343,6 +351,7 @@
             <option value="+677">🇸🇧 Solomon Islands (+677)</option>
             <option value="+252">🇸🇴 Somalia (+252)</option>
             <option value="+27">🇿🇦 South Africa (+27)</option>
+            <option value="+500">🇬🇸 South Georgia (+500)</option>
             <option value="+82">🇰🇷 South Korea (+82)</option>
             <option value="+211">🇸🇸 South Sudan (+211)</option>
             <option value="+34">🇪🇸 Spain (+34)</option>
@@ -361,6 +370,7 @@
             <option value="+690">🇹🇰 Tokelau (+690)</option>
             <option value="+676">🇹🇴 Tonga (+676)</option>
             <option value="+1868">🇹🇹 Trinidad and Tobago (+1868)</option>
+            <option value="+290">🇹🇦 Tristan da Cunha (+290)</option>
             <option value="+216">🇹🇳 Tunisia (+216)</option>
             <option value="+90">🇹🇷 Turkey (+90)</option>
             <option value="+993">🇹🇲 Turkmenistan (+993)</option>
@@ -424,7 +434,7 @@
 
         <button class="role-btn" onclick="chooseRole('creator')">
           <div class="role-title" id="lblRoleChTitle">📺 I am a Channel Owner</div>
-          <div class="role-sub" id="lblRoleChSub">I own Telegram channels and want to monetize by hosting ads.</div>
+          <div class="role-sub" id="lblRoleChSub">I own Telegram channels and want to monetize ads.</div>
         </button>
       </div>
 
@@ -455,7 +465,8 @@
     <header>
       <div class="top-bar">
         <a href="/" class="logo">⚡ EthioAd.io</a>
-        <div style="display: flex; align-items: center; gap: 10px;">
+        <div class="header-actions">
+          <button class="add-ch-btn" onclick="openAddChannelModal()">+ Add Channel</button>
           <select id="langSwitcher" class="lang-select-box" onchange="syncAndSwitchLanguage(this.value)">
             <option value="en">🇬🇧 English</option>
             <option value="am">🇪🇹 አማርኛ</option>
@@ -489,7 +500,31 @@
       </div>
     </div>
 
-    <!-- AI Widget -->
+    <!-- DIRECT ADD CHANNEL MODAL -->
+    <div class="modal-overlay" id="addChannelModal">
+      <div class="modal-window">
+        <span class="modal-close" onclick="closeAddChannelModal()">✕</span>
+        <h2 style="font-size: 20px; font-weight: 800; margin-bottom: 6px;">Register New Channel</h2>
+        <p style="font-size: 13px; color: #64748b; margin-bottom: 16px;">List your Telegram channel on the official catalog.</p>
+
+        <div class="form-group">
+          <label>Channel Name</label>
+          <input type="text" id="newChName" placeholder="e.g. MR ODDS" />
+        </div>
+        <div class="form-group">
+          <label>Channel Link</label>
+          <input type="text" id="newChLink" placeholder="e.g. https://t.me/yourchannel" />
+        </div>
+        <div class="form-group">
+          <label>Base Price (ETB)</label>
+          <input type="number" id="newChPrice" placeholder="e.g. 1000" />
+        </div>
+
+        <button class="btn-submit" onclick="submitNewChannel()">Publish Channel</button>
+      </div>
+    </div>
+
+    <!-- AI Floating Widget -->
     <div class="ai-fab" onclick="toggleChat()" title="AI Assistant">💬</div>
     <div class="chat-modal" id="chatModal">
       <div class="chat-header">
@@ -563,34 +598,6 @@
         inputPlaceholder: "ጥያቄዎን ይጻፉ...",
         send: "ላክ",
         verified: "👤 የተረጋገጠ"
-      },
-      ar: {
-        authDesc: "أهلاً بك! سجّل الدخول أو أنشئ حساباً لعرض قنوات التيليجرام.",
-        google: "المتابعة باستخدام Google",
-        country: "اختر الدولة:",
-        contact: "البريد الإلكتروني أو الهاتف",
-        sendCode: "إرسال رمز من 5 أرقام",
-        otpTitle: "أدخل الرمز المكون من 5 أرقام",
-        resend: "تغيير جهة الاتصال / إعادة الإرسال",
-        verifyBtn: "تأكيد ومتابعة ➔",
-        roleHeader: "هل أنت معلن أم صاحب قناة؟",
-        roleSub: "يرجى الاختيار:",
-        roleAdvTitle: "📢 أنا معلن (Advertiser)",
-        roleAdvSub: "أريد الإعلان عن نشاطي التجاري في القنوات.",
-        roleChTitle: "📺 أنا صاحب قناة (Channel Owner)",
-        roleChSub: "أمتلك قنوات تيليجرام وأرغب بنشر الإعلانات.",
-        adQTitle: "ماذا تريد أن تعلن؟",
-        adQSub: "اختر الفئة:",
-        finishBtn: "الانتقال إلى الدليل ➔",
-        title: "دليل قنوات التيليجرام",
-        search: "ابحث عن القنوات...",
-        noChannels: "لا توجد قنوات مسجلة بعد.",
-        views: "المشاهدات",
-        buy: "شراء إعلان ➔",
-        aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.",
-        inputPlaceholder: "اكتب سؤالك...",
-        send: "إرسال",
-        verified: "👤 تم التحقق"
       }
     };
 
@@ -731,8 +738,8 @@
         document.getElementById('stepRole').style.display = 'none';
         document.getElementById('stepAdQuestion').style.display = 'block';
       } else {
-        alert("Welcome! To register your Telegram channel, open @EthioAdvert_bot and send /register.");
         finishOnboarding();
+        openAddChannelModal();
       }
     }
 
@@ -744,6 +751,43 @@
       document.getElementById('authGateScreen').style.display = 'none';
       document.getElementById('mainDashboard').style.display = 'block';
       loadChannels();
+    }
+
+    // Modal Channel Adding
+    function openAddChannelModal() {
+      document.getElementById('addChannelModal').style.display = 'flex';
+    }
+    function closeAddChannelModal() {
+      document.getElementById('addChannelModal').style.display = 'none';
+    }
+
+    async function submitNewChannel() {
+      const name = document.getElementById('newChName').value.trim();
+      const link = document.getElementById('newChLink').value.trim();
+      const price = document.getElementById('newChPrice').value.trim();
+
+      if (!name || !link || !price) {
+        alert("Please fill in all channel details.");
+        return;
+      }
+
+      try {
+        const res = await fetch('/api/add_channel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ channel_name: name, channel_link: link, base_price: price })
+        });
+        const data = await res.json();
+        if (data.status === 'ok') {
+          alert("🎉 Channel registered successfully!");
+          closeAddChannelModal();
+          loadChannels();
+        } else {
+          alert("Error: " + data.message);
+        }
+      } catch (e) {
+        alert("Server error registering channel.");
+      }
     }
 
     let allChannels = [];
