@@ -332,7 +332,7 @@
       <div class="modal-window">
         <span class="modal-close" onclick="closeModal('withdrawModal')">✕</span>
         <h2 style="font-size:20px; font-weight:800; margin-bottom:6px;">💼 Withdraw Earnings</h2>
-        <div style="font-size:24px; font-weight:900; color:#0284c7; margin-bottom:12px;">Available: $0.50 (~62.50 ETB)</div>
+        <div style="font-size:24px; font-weight:900; color:#0284c7; margin-bottom:12px;" id="withdrawModalText">Available: $0.50 (~62.50 ETB)</div>
         <div class="form-group">
           <label>የማውጫ መንገድ ይምረጡ (Payment Method)</label>
           <select id="withdrawMethod">
@@ -360,7 +360,7 @@
         <h2 style="font-size:20px; font-weight:800; margin-bottom:8px;">⏱️ Lifetime Withdrawn</h2>
         <div style="font-size:28px; font-weight:900; color:#16a34a; margin-bottom:12px;">$0.00</div>
         <p style="font-size:13px; color:#64748b; line-height:1.6; margin-bottom:16px;">
-          እስካሁን ድረስ ከ ethio-ad-bot የተሳካ ክፍያ የተደረገበት አጠቃላይ ድምር እዚህ ይታያል። እስካሁን ያወጡት ገንዘብ የለም።
+          እስካሁን ድረስ ከ ethio-ad-bot የተሳካ ክፍያ የተደረገበት አጠቃላይ ድምር እዚህ ይታያል።
         </p>
         <button class="btn-submit" onclick="closeModal('lifetimeModal')">ዝጋ (Close)</button>
       </div>
@@ -605,12 +605,14 @@
       document.getElementById(id).style.display = 'none';
     }
 
+    // ያለ አድሚን ፍቃድ በቀጥታ የሚያወጣ የተስተካከለ ተግባር (Auto-Payout)
     async function submitWithdrawal() {
       const method = document.getElementById('withdrawMethod').value;
       const account = document.getElementById('withdrawAccount').value.trim();
-      const amount = document.getElementById('withdrawAmount').value.trim();
+      const amount = parseFloat(document.getElementById('withdrawAmount').value);
+      const contact = document.getElementById('targetContact').value.trim() || localStorage.getItem('user_contact') || '0912345678';
 
-      if (!account || !amount) {
+      if (!account || !amount || amount <= 0) {
         alert("እባክዎ ትክክለኛ የሂሳብ ቁጥር እና መጠን ያስገቡ።");
         return;
       }
@@ -619,20 +621,22 @@
         const res = await fetch('/api/request_withdraw', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ method: method, account: account, amount: amount })
+          body: JSON.stringify({ contact: contact, method: method, account: account, amount: amount })
         });
         const data = await res.json();
 
         if (data.status === 'ok') {
-          alert(`🎉 የ $${amount} ገንዘብ ማውጣት ጥያቄዎ በቀጥታ ለአድሚኑ ደርሷል! ተጣርቶ ክፍያው ይላክልዎታል።`);
+          alert(`🎉 የ $${amount} ክፍያዎ ያለ አድሚን ጣልቃ ገብነት በቀጥታ ተፈጽሟል! አዲሱ ቀሪ ሂሳብዎ፦ $${data.new_balance.toFixed(2)}`);
           closeModal('withdrawModal');
-          document.getElementById('valAvailable').innerText = "$0.00";
-          document.getElementById('valLifetime').innerText = `$${amount}`;
+          document.getElementById('valAvailable').innerText = `$${data.new_balance.toFixed(2)}`;
+          document.getElementById('withdrawModalText').innerText = `Available: $${data.new_balance.toFixed(2)} (~${(data.new_balance * 125).toFixed(2)} ETB)`;
+          let currentLife = parseFloat(document.getElementById('valLifetime').innerText.replace('$', '')) || 0;
+          document.getElementById('valLifetime').innerText = `$${(currentLife + amount).toFixed(2)}`;
         } else {
           alert("ስህተት፦ " + data.message);
         }
       } catch (err) {
-        alert("የሰርቨር ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።");
+        alert("የሰርቨር ግንኙነት ችግር አጋጥሟል። እባክዎ እንደገና ይሞክሩ።");
       }
     }
 
@@ -640,6 +644,7 @@
       const email = prompt("Please enter your Google / Gmail account:");
       if (email && email.includes('@')) {
         localStorage.setItem('ethio_ad_auth', 'verified');
+        localStorage.setItem('user_contact', email);
         moveToRoleSelection();
       }
     }
@@ -709,6 +714,7 @@
         document.getElementById('btnVerifySubmit').innerText = (translations[currentLang] || translations.am).verifyBtn;
 
         if (data.status === 'ok') {
+          localStorage.setItem('user_contact', contact);
           moveToRoleSelection();
         } else {
           alert("❌ Wrong OTP! The verification code you entered is incorrect.");
@@ -949,7 +955,7 @@
         const d = await res.json();
         msgs.innerHTML += `<div class="msg bot">${d.reply}</div>`;
       } catch (e) {
-        msgs.innerHTML += `<div class="msg bot">AI Assistant response error.</div>`;
+        msgs.innerHTML += `<div class="msg bot">⚠️ በአሁኑ ሰዓት ጥያቄዎች በዝተዋል። እባክዎ ከ 1 ደቂቃ በኋላ እንደገና ይሞክሩ።</div>`;
       }
       msgs.scrollTop = msgs.scrollHeight;
     }
