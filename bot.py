@@ -29,7 +29,6 @@ RENDER_URL = "https://ethio-ad-bot-wz6h.onrender.com"
 
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
-# በዓለም ላይ ዋና ዋናዎቹ 15 ቋንቋዎች
 LANG_STRINGS = {
     "am": {
         "welcome": "እንኳን ደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
@@ -249,38 +248,42 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# ለድረ-ገጹ ተንሳፋፊ AI ረዳት API (15 ቋንቋዎችን የሚረዳ)
+# አስተማማኝ AI ሞዴሎችን የሚጠቀም ተግባር (503 እንዳይመጣ)
+def call_gemini_models(system_prompt, question_text):
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        return "API Key not configured."
+
+    ai_client = genai.Client(api_key=key.strip())
+    # 503 እንዳያጋጥም ቅድሚያ የሚሰጣቸው የተረጋጉ ሞዴሎች
+    models_to_try = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash']
+
+    for m in models_to_try:
+        try:
+            res = ai_client.models.generate_content(
+                model=m,
+                contents=f"{system_prompt}\n\nUser Question: {question_text}"
+            )
+            if res and res.text:
+                return res.text
+        except Exception as e:
+            continue
+    return "ይቅርታ፣ የ AI ሰርቨር ተጨናንቋል። እባክዎ ከጥቂት ሰከንዶች በኋላ ይሞክሩ።"
+
+# የድረ-ገጹ AI API
 @app.route('/api/ask_ai', methods=['POST'])
 def api_ask_ai():
     data = request.get_json() or {}
     query = data.get('query', '')
     lang = data.get('lang', 'am')
-    
-    key = os.getenv("GEMINI_API_KEY")
-    if not key:
-        return jsonify({'reply': 'API Key not configured.'})
 
     system_prompt = (
         f"You are the official smart AI assistant for Ethio Telegram Ads catalog. "
-        f"Always respond fluently and clearly in this language code: {lang}. "
+        f"Always respond fluently and concisely in this language code: {lang}. "
         f"Explain how to select channels, pay via Telebirr/CBE or Crypto/Stars, and publish ads."
     )
-    try:
-        ai_client = genai.Client(api_key=key.strip())
-        res = ai_client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=f"{system_prompt}\n\nUser Question: {query}"
-        )
-        return jsonify({'reply': res.text if res else 'No reply generated.'})
-    except Exception as e:
-        try:
-            res = ai_client.models.generate_content(
-                model='gemini-3.8-flash',
-                contents=f"{system_prompt}\n\nUser Question: {query}"
-            )
-            return jsonify({'reply': res.text if res else 'No reply generated.'})
-        except Exception as err:
-            return jsonify({'reply': f'Error: {str(err)}'})
+    answer = call_gemini_models(system_prompt, query)
+    return jsonify({'reply': answer})
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -302,6 +305,7 @@ def extract_channel_handle(link_or_name):
 # 15 ቋንቋዎች መምረጫ
 @bot.message_handler(commands=['lang'])
 def choose_language(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     markup = InlineKeyboardMarkup(row_width=3)
     markup.add(
         InlineKeyboardButton("🇪🇹 አማርኛ", callback_data="lang_am"),
@@ -330,42 +334,21 @@ def set_lang_handler(call):
     bot.send_message(call.message.chat.id, get_text(call.message.chat.id, "lang_set"))
     bot.send_message(call.message.chat.id, get_text(call.message.chat.id, "welcome"))
 
-# የ AI ረዳት ፈጻሚ
+# የቴሌግራም ቦት AI ምላሽ
 def generate_ai_response(user_id, question_text):
-    key = os.getenv("GEMINI_API_KEY")
-    if not key:
-        return "⚠️ Gemini API Key not configured."
-
     current_l = user_lang.get(user_id, "am")
     system_prompt = (
         f"You are the official smart AI assistant for 'Ethio Telegram Ads' platform. "
-        f"Respond politely and fluently in the user's selected language: {current_l}. "
+        f"Respond politely and concisely in the user's selected language: {current_l}. "
         f"Provide short, helpful answers. Commands: /register to add a channel, /buy_ad to purchase ads, "
         f"/lang to switch language, /cancel to reset. "
         f"Payments: Telebirr, CBE, Abyssinia, Telegram Stars, and Crypto (TON, TRC20, ERC20)."
     )
-    try:
-        ai_client = genai.Client(api_key=key.strip())
-        response = ai_client.models.generate_content(
-            model='gemini-2.0-flash',
-            contents=f"{system_prompt}\n\nUser Question: {question_text}"
-        )
-        if response and response.text:
-            return response.text
-    except Exception as e:
-        try:
-            response = ai_client.models.generate_content(
-                model='gemini-3.8-flash',
-                contents=f"{system_prompt}\n\nUser Question: {question_text}"
-            )
-            if response and response.text:
-                return response.text
-        except Exception as err:
-            return f"AI Error: {err}"
-    return "No reply generated."
+    return call_gemini_models(system_prompt, question_text)
 
 @bot.message_handler(commands=['ask'])
 def handle_ask_command(message):
+    bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     query = message.text.replace('/ask', '').strip()
     if not query:
         bot.reply_to(message, "Please write your question after /ask.")
