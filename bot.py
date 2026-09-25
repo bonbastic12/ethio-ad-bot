@@ -29,7 +29,7 @@ RENDER_URL = "https://ethio-ad-bot-wz6h.onrender.com"
 
 bot = telebot.TeleBot(BOT_TOKEN, threaded=False)
 
-# 7 ቋንቋዎች
+# በዓለም ላይ ዋና ዋናዎቹ 15 ቋንቋዎች
 LANG_STRINGS = {
     "am": {
         "welcome": "እንኳን ደህና መጡ! 📢\n\n• ቻናል ለመመዝገብ፦ /register\n• ማስታወቂያ ለመግዛት፦ /buy_ad\n• ቋንቋ ለመቀየር፦ /lang\n• አሰራር ለመሰረዝ፦ /cancel\n• AI ለማናገር፦ /ask ወይም በቀጥታ ጽፈው ይላኩ።",
@@ -53,6 +53,17 @@ LANG_STRINGS = {
         "ad_prompt": "🎉 Payment approved! Please send the ad text or photo to be published.",
         "posted": "🎉 Your ad has been published to {channel} successfully!"
     },
+    "ar": {
+        "welcome": "أهلاً بك! 📢\n\n• تسجيل قناة: /register\n• شراء إعلان: /buy_ad\n• تغيير اللغة: /lang\n• إلغاء: /cancel\n• المساعد الذكي: /ask أو أرسل سؤالك مباشرة.",
+        "lang_set": "تم تغيير اللغة إلى العربية.",
+        "enter_ch_name": "يرجى إدخال اسم القناة:",
+        "enter_ch_link": "يرجى إدخال رابط القناة:",
+        "enter_price": "أدخل السعر الأساسي بالـ ETB:",
+        "registered": "✅ تم تسجيل قناتك بنجاح!",
+        "pay_title": "💳 *تعليمات الدفع*\n\n📢 *القناة:* {channel}\n⏳ *المدة:* {duration}\n💰 *المبلغ:* {price} ETB (أو ~{usd}$ USD)",
+        "ad_prompt": "🎉 تم تأكيد الدفع! أرسل نص أو صورة الإعلان.",
+        "posted": "🎉 تم نشر الإعلان بنجاح في {channel}!"
+    },
     "fr": {
         "welcome": "Bienvenue! 📢\n\n• Enregistrer: /register\n• Acheter pub: /buy_ad\n• Langue: /lang\n• Annuler: /cancel\n• Parler avec IA: /ask ou écrivez votre message.",
         "lang_set": "Langue changée en Français.",
@@ -63,17 +74,6 @@ LANG_STRINGS = {
         "pay_title": "💳 *Instructions de paiement*\n\n📢 *Chaîne:* {channel}\n⏳ *Durée:* {duration}\n💰 *Total:* {price} ETB (ou ~{usd}$ USD)",
         "ad_prompt": "🎉 Paiement approuvé! Envoyez votre texte publicitaire ou photo.",
         "posted": "🎉 Publicité publiée sur {channel} avec succès!"
-    },
-    "ru": {
-        "welcome": "Добро пожаловать! 📢\n\n• Добавить канал: /register\n• Купить рекламу: /buy_ad\n• Язык: /lang\n• Отмена: /cancel\n• Чат с ИИ: /ask или просто задайте вопрос.",
-        "lang_set": "Язык изменен на Русский.",
-        "enter_ch_name": "Введите название канала:",
-        "enter_ch_link": "Введите ссылку на канал:",
-        "enter_price": "Введите базовую цену в ETB:",
-        "registered": "✅ Канал успешно добавлен!",
-        "pay_title": "💳 *Оплата рекламы*\n\n📢 *Канал:* {channel}\n⏳ *Срок:* {duration}\n💰 *Сумма:* {price} ETB (или ~{usd}$ USD)",
-        "ad_prompt": "🎉 Оплата подтверждена! Отправьте текст или фото рекламы.",
-        "posted": "🎉 Реклама успешно опубликована в {channel}!"
     },
     "es": {
         "welcome": "¡Bienvenido! 📢\n\n• Registrar canal: /register\n• Comprar anuncio: /buy_ad\n• Cambiar idioma: /lang\n• Cancelar: /cancel\n• Hablar con IA: /ask o envíe su mensaje.",
@@ -86,6 +86,17 @@ LANG_STRINGS = {
         "ad_prompt": "🎉 ¡Pago aprobado! Envíe el texto o la imagen de su anuncio.",
         "posted": "🎉 ¡Anuncio publicado en {channel} con éxito!"
     },
+    "ru": {
+        "welcome": "Добро пожаловать! 📢\n\n• Добавить канал: /register\n• Купить рекламу: /buy_ad\n• Язык: /lang\n• Отмена: /cancel\n• Чат с ИИ: /ask или просто задайте вопрос.",
+        "lang_set": "Язык изменен на Русский.",
+        "enter_ch_name": "Введите название канала:",
+        "enter_ch_link": "Введите ссылку на канал:",
+        "enter_price": "Введите базовую цену в ETB:",
+        "registered": "✅ Канал успешно добавлен!",
+        "pay_title": "💳 *Оплата рекламы*\n\n📢 *Канал:* {channel}\n⏳ *Срок:* {duration}\n💰 *Сумма:* {price} ETB (или ~{usd}$ USD)",
+        "ad_prompt": "🎉 Оплата подтверждена! Отправьте текст или фото рекламы.",
+        "posted": "🎉 Реклама успешно опубликована в {channel}!"
+    },
     "pt": {
         "welcome": "Bem-vindo! 📢\n\n• Registrar canal: /register\n• Comprar anúncio: /buy_ad\n• Mudar idioma: /lang\n• Cancelar: /cancel\n• Falar com IA: /ask ou envie mensagem.",
         "lang_set": "Idioma alterado para Português.",
@@ -97,16 +108,93 @@ LANG_STRINGS = {
         "ad_prompt": "🎉 Pagamento aprovado! Envie o texto ou a foto do anúncio.",
         "posted": "🎉 Anúncio publicado em {channel} com sucesso!"
     },
-    "ar": {
-        "welcome": "أهلاً بك! 📢\n\n• تسجيل قناة: /register\n• شراء إعلان: /buy_ad\n• تغيير اللغة: /lang\n• إلغاء: /cancel\n• المساعد الذكي: /ask أو أرسل سؤالك مباشرة.",
-        "lang_set": "تم تغيير اللغة إلى العربية.",
-        "enter_ch_name": "يرجى إدخال اسم القناة:",
-        "enter_ch_link": "يرجى إدخال رابط القناة:",
-        "enter_price": "أدخل السعر الأساسي بالـ ETB:",
-        "registered": "✅ تم تسجيل قناتك بنجاح!",
-        "pay_title": "💳 *تعليمات الدفع*\n\n📢 *القناة:* {channel}\n⏳ *المدة:* {duration}\n💰 *المبلغ:* {price} ETB (أو ~{usd}$ USD)",
-        "ad_prompt": "🎉 تم تأكيد الدفع! أرسل نص أو صورة الإعلان.",
-        "posted": "🎉 تم نشر الإعلان بنجاح في {channel}!"
+    "zh": {
+        "welcome": "欢迎！📢\n\n• 注册频道：/register\n• 购买广告：/buy_ad\n• 更改语言：/lang\n• 取消操作：/cancel\n• AI 对话：/ask 或直接输入问题。",
+        "lang_set": "语言已切换为中文。",
+        "enter_ch_name": "请输入您的频道名称：",
+        "enter_ch_link": "请输入频道链接：",
+        "enter_price": "请输入基础价格 (ETB)：",
+        "registered": "✅ 您的频道已成功注册！",
+        "pay_title": "💳 *支付指南*\n\n📢 *频道：* {channel}\n⏳ *时长：* {duration}\n💰 *总价：* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 支付成功！请发送要在频道中发布的广告内容（文字或图片）。",
+        "posted": "🎉 您的广告已成功发布到 {channel}！"
+    },
+    "hi": {
+        "welcome": "नमस्ते! 📢\n\n• चैनल पंजीकृत करें: /register\n• विज्ञापन खरीदें: /buy_ad\n• भाषा बदलें: /lang\n• रद्द करें: /cancel\n• AI से पूछें: /ask या अपना प्रश्न टाइप करें।",
+        "lang_set": "भाषा हिंदी में बदल दी गई है।",
+        "enter_ch_name": "कृपया अपने चैनल का नाम दर्ज करें:",
+        "enter_ch_link": "चैनल का लिंक दर्ज करें:",
+        "enter_price": "शुरुआती मूल्य (ETB में) दर्ज करें:",
+        "registered": "✅ आपका चैनल सफलतापूर्वक पंजीकृत हो गया है!",
+        "pay_title": "💳 *भुगतान निर्देश*\n\n📢 *चैनल:* {channel}\n⏳ *अवधि:* {duration}\n💰 *कुल राशि:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 भुगतान स्वीकृत! कृपया प्रकाशित करने के लिए अपना विज्ञापन भेजें।",
+        "posted": "🎉 आपका विज्ञापन {channel} पर सफलतापूर्वक प्रकाशित हुआ!"
+    },
+    "de": {
+        "welcome": "Willkommen! 📢\n\n• Kanal registrieren: /register\n• Werbung kaufen: /buy_ad\n• Sprache ändern: /lang\n• Abbrechen: /cancel\n• Mit KI chatten: /ask oder Frage eingeben.",
+        "lang_set": "Sprache auf Deutsch umgestellt.",
+        "enter_ch_name": "Geben Sie Ihren Kanalnamen ein:",
+        "enter_ch_link": "Geben Sie den Kanallink ein:",
+        "enter_price": "Grundpreis in ETB eingeben:",
+        "registered": "✅ Ihr Kanal wurde erfolgreich registriert!",
+        "pay_title": "💳 *Zahlungsanweisungen*\n\n📢 *Kanal:* {channel}\n⏳ *Dauer:* {duration}\n💰 *Gesamt:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 Zahlung bestätigt! Senden Sie Ihren Anzeigentext oder Ihr Foto.",
+        "posted": "🎉 Ihre Anzeige wurde erfolgreich auf {channel} veröffentlicht!"
+    },
+    "tr": {
+        "welcome": "Hoş geldiniz! 📢\n\n• Kanal ekle: /register\n• Reklam al: /buy_ad\n• Dil değiştir: /lang\n• İptal: /cancel\n• Yapay Zeka ile konuş: /ask veya sorunuzu yazın.",
+        "lang_set": "Dil Türkçe olarak ayarlandı.",
+        "enter_ch_name": "Lütfen kanal adınızı girin:",
+        "enter_ch_link": "Kanal bağlantısını girin:",
+        "enter_price": "ETB cinsinden taban fiyatı girin:",
+        "registered": "✅ Kanalınız başarıyla kaydedildi!",
+        "pay_title": "💳 *Ödeme Talimatı*\n\n📢 *Kanal:* {channel}\n⏳ *Süre:* {duration}\n💰 *Tutar:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 Ödeme onaylandı! Lütfen yayınlanacak reklamı gönderin.",
+        "posted": "🎉 Reklamınız {channel} kanalında başarıyla yayınlandı!"
+    },
+    "it": {
+        "welcome": "Benvenuto! 📢\n\n• Registra canale: /register\n• Acquista pubblicità: /buy_ad\n• Cambia lingua: /lang\n• Annulla: /cancel\n• Parla con IA: /ask o scrivi la tua domanda.",
+        "lang_set": "Lingua impostata su Italiano.",
+        "enter_ch_name": "Inserisci il nome del tuo canale:",
+        "enter_ch_link": "Inserisci il link del canale:",
+        "enter_price": "Inserisci il prezzo base in ETB:",
+        "registered": "✅ Il tuo canale è stato registrato!",
+        "pay_title": "💳 *Istruzioni di pagamento*\n\n📢 *Canale:* {channel}\n⏳ *Durata:* {duration}\n💰 *Totale:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 Pagamento approvato! Invia il testo o la foto dell'annuncio.",
+        "posted": "🎉 Annuncio pubblicato con successo su {channel}!"
+    },
+    "ja": {
+        "welcome": "ようこそ！📢\n\n• チャンネル登録：/register\n• 広告購入：/buy_ad\n• 言語変更：/lang\n• キャンセル：/cancel\n• AIに質問：/ask または直接質問を入力。",
+        "lang_set": "言語が日本語に設定されました。",
+        "enter_ch_name": "チャンネル名を入力してください：",
+        "enter_ch_link": "チャンネルリンクを入力してください：",
+        "enter_price": "基本料金（ETB）を入力してください：",
+        "registered": "✅ チャンネルが登録されました！",
+        "pay_title": "💳 *お支払い手順*\n\n📢 *チャンネル：* {channel}\n⏳ *期間：* {duration}\n💰 *合計：* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 お支払いが確認されました！掲載する広告内容を送信してください。",
+        "posted": "🎉 広告が {channel} に正常に投稿されました！"
+    },
+    "ko": {
+        "welcome": "환영합니다! 📢\n\n• 채널 등록: /register\n• 광고 구매: /buy_ad\n• 언어 변경: /lang\n• 취소: /cancel\n• AI 대화: /ask 또는 질문을 직접 입력하세요.",
+        "lang_set": "언어가 한국어로 변경되었습니다.",
+        "enter_ch_name": "채널 이름을 입력하세요:",
+        "enter_ch_link": "채널 링크를 입력하세요:",
+        "enter_price": "기본 가격(ETB)을 입력하세요:",
+        "registered": "✅ 채널이 성공적으로 등록되었습니다!",
+        "pay_title": "💳 *결제 안내*\n\n📢 *채널:* {channel}\n⏳ *기간:* {duration}\n💰 *금액:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 결제가 승인되었습니다! 게재할 광고(텍스트 또는 사진)를 보내주세요.",
+        "posted": "🎉 광고가 {channel} 채널에 게시되었습니다!"
+    },
+    "sw": {
+        "welcome": "Karibu! 📢\n\n• Sajili idhaa: /register\n• Nunua tangazo: /buy_ad\n• Badilisha lugha: /lang\n• Ghairi: /cancel\n• Ongea na AI: /ask au andika swali lako.",
+        "lang_set": "Lugha imebadilishwa kuwa Kiswahili.",
+        "enter_ch_name": "Tafadhali weka jina la idhaa yako:",
+        "enter_ch_link": "Weka kiungo cha idhaa:",
+        "enter_price": "Weka bei ya kuanzia kwa ETB:",
+        "registered": "✅ Idhaa yako imesajiliwa kikamilifu!",
+        "pay_title": "💳 *Maagizo ya Malipo*\n\n📢 *Idhaa:* {channel}\n⏳ *Muda:* {duration}\n💰 *Jumla:* {price} ETB (~{usd}$ USD)",
+        "ad_prompt": "🎉 Malipo yamethibitishwa! Tuma tangazo lako sasa.",
+        "posted": "🎉 Tangazo lako limechapishwa kwenye {channel}!"
     }
 }
 
@@ -127,7 +215,6 @@ def get_text(chat_id, key):
     lang = user_lang.get(chat_id, "am")
     return LANG_STRINGS.get(lang, LANG_STRINGS["en"]).get(key, LANG_STRINGS["en"].get(key, ""))
 
-# ----------------- 1. የዳታቤዝ እና የዌብሳይት ዝግጅት -----------------
 def get_db_connection():
     conn = sqlite3.connect('ads.db', check_same_thread=False)
     conn.row_factory = sqlite3.Row
@@ -162,7 +249,7 @@ def get_channels():
     conn.close()
     return jsonify([dict(row) for row in channels])
 
-# ለድረ-ገጹ ተንሳፋፊ AI ረዳት API
+# ለድረ-ገጹ ተንሳፋፊ AI ረዳት API (15 ቋንቋዎችን የሚረዳ)
 @app.route('/api/ask_ai', methods=['POST'])
 def api_ask_ai():
     data = request.get_json() or {}
@@ -171,22 +258,29 @@ def api_ask_ai():
     
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return jsonify({'reply': 'API Key አልተገኘም።'})
+        return jsonify({'reply': 'API Key not configured.'})
 
     system_prompt = (
         f"You are the official smart AI assistant for Ethio Telegram Ads catalog. "
-        f"Respond politely and clearly in this language code: {lang}. "
+        f"Always respond fluently and clearly in this language code: {lang}. "
         f"Explain how to select channels, pay via Telebirr/CBE or Crypto/Stars, and publish ads."
     )
     try:
         ai_client = genai.Client(api_key=key.strip())
         res = ai_client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=f"{system_prompt}\n\nUser Question: {query}"
         )
-        return jsonify({'reply': res.text if res else 'ምላሽ ማመንጨት አልተቻለም።'})
+        return jsonify({'reply': res.text if res else 'No reply generated.'})
     except Exception as e:
-        return jsonify({'reply': f'Error: {str(e)}'})
+        try:
+            res = ai_client.models.generate_content(
+                model='gemini-3.8-flash',
+                contents=f"{system_prompt}\n\nUser Question: {query}"
+            )
+            return jsonify({'reply': res.text if res else 'No reply generated.'})
+        except Exception as err:
+            return jsonify({'reply': f'Error: {str(err)}'})
 
 @app.route('/webhook', methods=['POST'])
 def webhook():
@@ -205,20 +299,28 @@ def extract_channel_handle(link_or_name):
         clean = "@" + clean
     return clean
 
-# ----------------- 2. የቴሌግራም ቦት ቋንቋ መምረጫ -----------------
+# 15 ቋንቋዎች መምረጫ
 @bot.message_handler(commands=['lang'])
 def choose_language(message):
-    markup = InlineKeyboardMarkup(row_width=2)
+    markup = InlineKeyboardMarkup(row_width=3)
     markup.add(
         InlineKeyboardButton("🇪🇹 አማርኛ", callback_data="lang_am"),
         InlineKeyboardButton("🇬🇧 English", callback_data="lang_en"),
+        InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar"),
         InlineKeyboardButton("🇫🇷 Français", callback_data="lang_fr"),
-        InlineKeyboardButton("🇷🇺 Русский", callback_data="lang_ru"),
         InlineKeyboardButton("🇪🇸 Español", callback_data="lang_es"),
+        InlineKeyboardButton("🇷🇺 Русский", callback_data="lang_ru"),
         InlineKeyboardButton("🇵🇹 Português", callback_data="lang_pt"),
-        InlineKeyboardButton("🇸🇦 العربية", callback_data="lang_ar")
+        InlineKeyboardButton("🇨🇳 中文", callback_data="lang_zh"),
+        InlineKeyboardButton("🇮🇳 हिन्दी", callback_data="lang_hi"),
+        InlineKeyboardButton("🇩🇪 Deutsch", callback_data="lang_de"),
+        InlineKeyboardButton("🇹🇷 Türkçe", callback_data="lang_tr"),
+        InlineKeyboardButton("🇮🇹 Italiano", callback_data="lang_it"),
+        InlineKeyboardButton("🇯🇵 日本語", callback_data="lang_ja"),
+        InlineKeyboardButton("🇰🇷 한국어", callback_data="lang_ko"),
+        InlineKeyboardButton("🇰🇪 Kiswahili", callback_data="lang_sw")
     )
-    bot.reply_to(message, "🌍 Please choose your language / እባክዎ ቋንቋ ይምረጡ፦", reply_markup=markup)
+    bot.reply_to(message, "🌍 Choose Language / ቋንቋ ይምረጡ፦", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('lang_'))
 def set_lang_handler(call):
@@ -228,16 +330,16 @@ def set_lang_handler(call):
     bot.send_message(call.message.chat.id, get_text(call.message.chat.id, "lang_set"))
     bot.send_message(call.message.chat.id, get_text(call.message.chat.id, "welcome"))
 
-# ----------------- 3. የቦት AI ረዳት ፈጻሚ (/ask እና ጽሑፍ) -----------------
+# የ AI ረዳት ፈጻሚ
 def generate_ai_response(user_id, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
-        return "⚠️ Gemini API Key አልተገኘም። እባክዎ በ Render ላይ ያስገቡት።"
+        return "⚠️ Gemini API Key not configured."
 
     current_l = user_lang.get(user_id, "am")
     system_prompt = (
         f"You are the official smart AI assistant for 'Ethio Telegram Ads' platform. "
-        f"Respond in the user's preferred language: {current_l}. "
+        f"Respond politely and fluently in the user's selected language: {current_l}. "
         f"Provide short, helpful answers. Commands: /register to add a channel, /buy_ad to purchase ads, "
         f"/lang to switch language, /cancel to reset. "
         f"Payments: Telebirr, CBE, Abyssinia, Telegram Stars, and Crypto (TON, TRC20, ERC20)."
@@ -245,39 +347,44 @@ def generate_ai_response(user_id, question_text):
     try:
         ai_client = genai.Client(api_key=key.strip())
         response = ai_client.models.generate_content(
-            model='gemini-2.5-flash',
+            model='gemini-2.0-flash',
             contents=f"{system_prompt}\n\nUser Question: {question_text}"
         )
         if response and response.text:
             return response.text
     except Exception as e:
-        print(f"Gemini API Error: {e}")
-        return f"AI Error: {e}"
-    return "ይቅርታ፣ ምላሽ ማመንጨት አልተቻለም።"
+        try:
+            response = ai_client.models.generate_content(
+                model='gemini-3.8-flash',
+                contents=f"{system_prompt}\n\nUser Question: {question_text}"
+            )
+            if response and response.text:
+                return response.text
+        except Exception as err:
+            return f"AI Error: {err}"
+    return "No reply generated."
 
 @bot.message_handler(commands=['ask'])
 def handle_ask_command(message):
     query = message.text.replace('/ask', '').strip()
     if not query:
-        bot.reply_to(message, "እባክዎ ከትዕዛዙ ቀጥሎ ጥያቄዎን ይጻፉ (ለምሳሌ፦ `/ask ማስታወቂያ ዋጋው ስንት ነው?`)")
+        bot.reply_to(message, "Please write your question after /ask.")
         return
     bot.send_chat_action(message.chat.id, 'typing')
     ans = generate_ai_response(message.chat.id, query)
     bot.reply_to(message, ans)
 
-# ----------------- 4. የቦት መሰረታዊ ትዕዛዞች -----------------
 @bot.message_handler(commands=['cancel'])
 def cancel_action(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     if message.chat.id in approved_users:
         del approved_users[message.chat.id]
-    bot.reply_to(message, "ሂደቱ ተሰርዟል! አሁን ማንኛውንም ጥያቄ መጠየቅ ይችላሉ።")
+    bot.reply_to(message, "Process cancelled. / ሂደቱ ተሰርዟል።")
 
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     bot.clear_step_handler_by_chat_id(chat_id=message.chat.id)
     
-    # ድረ-ገጹ ላይ "Buy Ad" ተጭኖ ከመጣ በቀጥታ ወደ ቻናል መግዣ ይወስደዋል
     args = message.text.split()
     if len(args) > 1 and args[1].startswith('buy_'):
         channel_id = int(args[1].split('_')[1])
@@ -328,7 +435,7 @@ def process_price(message, channel_name, channel_link):
 
         bot.reply_to(message, get_text(message.chat.id, "registered"))
     except ValueError:
-        bot.reply_to(message, "❌ እባክዎ ትክክለኛ ቁጥር ያስገቡ።")
+        bot.reply_to(message, "❌ Invalid number. Please enter digits only.")
 
 # ማስታወቂያ መግዛት
 @bot.message_handler(commands=['buy_ad'])
@@ -339,7 +446,7 @@ def buy_ad_start(message):
     conn.close()
 
     if not channels:
-        bot.reply_to(message, "❌ እስካሁን የተመዘገበ ቻናል የለም።")
+        bot.reply_to(message, "❌ No channels registered yet.")
         return
 
     markup = InlineKeyboardMarkup()
@@ -347,7 +454,7 @@ def buy_ad_start(message):
         btn = InlineKeyboardButton(f"{ch['channel_name']} (from {ch['final_price']} ETB)", callback_data=f"selch_{ch['id']}")
         markup.add(btn)
 
-    bot.reply_to(message, "ማስታወቂያ የሚለጥፉበትን ቻናል ይምረጡ፦", reply_markup=markup)
+    bot.reply_to(message, "Select a channel / ቻናል ይምረጡ፦", reply_markup=markup)
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('selch_'))
 def handle_channel_select(call):
@@ -361,7 +468,7 @@ def prompt_duration_selection(chat_id, channel_id):
     conn.close()
 
     if not ch:
-        bot.send_message(chat_id, "ቻናሉ አልተገኘም።")
+        bot.send_message(chat_id, "Channel not found.")
         return
 
     markup = InlineKeyboardMarkup()
@@ -370,7 +477,7 @@ def prompt_duration_selection(chat_id, channel_id):
         btn = InlineKeyboardButton(f"{val['label']} — {total_p} ETB", callback_data=f"dur_{ch['id']}_{key}")
         markup.add(btn)
 
-    bot.send_message(chat_id, f"ቻናል፦ *{ch['channel_name']}*\nቆይታ ይምረጡ፦", reply_markup=markup, parse_mode="Markdown")
+    bot.send_message(chat_id, f"Channel: *{ch['channel_name']}*\nSelect duration:", reply_markup=markup, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith('dur_'))
 def handle_duration_select(call):
@@ -414,7 +521,7 @@ def handle_duration_select(call):
 
     full_payment_text = (
         f"{base_title}\n\n"
-        f"🇪🇹 *የሀገር ውስጥ ክፍያ (ኢትዮጵያ):*\n"
+        f"🇪🇹 *Local Payments (ኢትዮጵያ):*\n"
         f"• Telebirr: `{TELEBIRR_NUM}`\n"
         f"• CBE Bank: `{CBE_ACCOUNT}`\n"
         f"• Abyssinia: `{ABYSSINIA_ACCOUNT}`\n"
@@ -423,16 +530,15 @@ def handle_duration_select(call):
         f"💎 *TON:*\n`{TON_WALLET}`\n\n"
         f"💵 *USDT (TRC20):*\n`{TRC20_WALLET}`\n\n"
         f"🔹 *USDT / ETH (ERC20):*\n`{ERC20_WALLET}`\n\n"
-        f"🌟 *Telegram Stars ክፍያ:*\n"
-        f"ከታች ያለውን የ Stars ቁልፍ ተጭነው ወዲያውኑ መክፈል ይችላሉ።\n"
-        f"⚠️ በባንክ ወይም በክሪፕቶ ከከፈሉ የደረሰኙን ስክሪንሾት እዚህ ይላኩ።"
+        f"🌟 *Telegram Stars / Card:*\n"
+        f"Pay instantly using Stars or Card below."
     )
 
     markup = InlineKeyboardMarkup()
-    star_btn = InlineKeyboardButton(f"🌟 በ Telegram Stars ክፈል ({stars_amount} ⭐️)", callback_data=f"paystars_{call.message.chat.id}")
+    star_btn = InlineKeyboardButton(f"🌟 Pay with Stars ({stars_amount} ⭐️)", callback_data=f"paystars_{call.message.chat.id}")
     markup.add(star_btn)
     if PAYMENT_PROVIDER_TOKEN:
-        card_btn = InlineKeyboardButton(f"💳 በካርድ ክፈል (${usd_est})", callback_data=f"paycard_{call.message.chat.id}")
+        card_btn = InlineKeyboardButton(f"💳 Pay with Card (${usd_est})", callback_data=f"paycard_{call.message.chat.id}")
         markup.add(card_btn)
 
     bot.send_message(call.message.chat.id, full_payment_text, reply_markup=markup, parse_mode="Markdown")
@@ -444,7 +550,7 @@ def handle_star_pay(call):
     user_id = call.message.chat.id
     order = user_orders.get(user_id)
     if not order:
-        bot.send_message(user_id, "የትእዛዝ መረጃ አልተገኘም። እባክዎ /buy_ad ብለው እንደገና ይሞክሩ።")
+        bot.send_message(user_id, "Order not found. Try /buy_ad.")
         return
 
     prices = [LabeledPrice(label=f"Ad on {order['channel_name']}", amount=order['stars'])]
@@ -465,7 +571,7 @@ def handle_card_pay(call):
     user_id = call.message.chat.id
     order = user_orders.get(user_id)
     if not order:
-        bot.send_message(user_id, "የትእዛዝ መረጃ አልተገኘም።")
+        bot.send_message(user_id, "Order not found.")
         return
 
     prices = [LabeledPrice(label=f"Ad on {order['channel_name']}", amount=order['cents'])]
@@ -489,8 +595,8 @@ def handle_successful_payment(message):
     order = user_orders.get(user_id)
     if order:
         approved_users[user_id] = order
-        bot.reply_to(message, "🎉 ክፍያዎ በተሳካ ሁኔታ ተጠናቋል!\n\n" + get_text(user_id, "ad_prompt"))
-        bot.send_message(ADMIN_ID, f"🎉 አዲስ ክፍያ ከ `{user_id}` ለ {order['channel_name']} ደርሷል!")
+        bot.reply_to(message, "🎉 Payment received!\n\n" + get_text(user_id, "ad_prompt"))
+        bot.send_message(ADMIN_ID, f"🎉 Payment from `{user_id}` for {order['channel_name']}!")
 
 @bot.message_handler(content_types=['photo'])
 def handle_photo(message):
@@ -504,15 +610,14 @@ def handle_photo(message):
         try:
             bot.send_photo(target_channel, message.photo[-1].file_id, caption=caption)
             bot.reply_to(message, get_text(user_id, "posted").format(channel=target_channel))
-            bot.send_message(ADMIN_ID, f"✅ Ad auto-posted to {target_channel} successfully.")
+            bot.send_message(ADMIN_ID, f"✅ Auto-posted to {target_channel} successfully.")
         except Exception as e:
             bot.forward_message(ADMIN_ID, message.chat.id, message.message_id)
             bot.reply_to(message, "Ad received! It will be posted by the admin.")
-            bot.send_message(ADMIN_ID, f"⚠️ Error auto-posting: {e}")
         return
 
     if user_id not in user_orders:
-        bot.reply_to(message, "እባክዎ መጀመሪያ /buy_ad ብለው ማስታወቂያ ይምረጡ።")
+        bot.reply_to(message, "Please choose /buy_ad first.")
         return
 
     order = user_orders[user_id]
@@ -520,26 +625,26 @@ def handle_photo(message):
 
     admin_markup = InlineKeyboardMarkup()
     admin_markup.add(
-        InlineKeyboardButton("✅ ፍቀድ (Approve)", callback_data=f"app_{user_id}"),
-        InlineKeyboardButton("❌ ውድቅ አድርግ (Reject)", callback_data=f"rej_{user_id}")
+        InlineKeyboardButton("✅ Approve", callback_data=f"app_{user_id}"),
+        InlineKeyboardButton("❌ Reject", callback_data=f"rej_{user_id}")
     )
 
     admin_caption = (
-        f"📩 *የደረሰኝ ማረጋገጫ!*\n\n"
-        f"ደንበኛ ID: `{user_id}`\n"
-        f"ቻናል: {order['channel_name']}\n"
-        f"ቆይታ: {order['duration']}\n"
-        f"ጠቅላላ ዋጋ: {order['final_price']} ETB"
+        f"📩 *Payment Receipt!*\n\n"
+        f"User: `{user_id}`\n"
+        f"Channel: {order['channel_name']}\n"
+        f"Duration: {order['duration']}\n"
+        f"Price: {order['final_price']} ETB"
     )
     bot.send_photo(ADMIN_ID, photo_id, caption=admin_caption, reply_markup=admin_markup, parse_mode="Markdown")
-    bot.reply_to(message, "✅ ደረሰኝዎ ደርሶናል! ከአድሚን ማረጋገጫ እየተጠበቀ ነው።")
+    bot.reply_to(message, "✅ Receipt received! Waiting for admin approval.")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(('app_', 'rej_')))
 def handle_admin_action(call):
     if call.from_user.id != ADMIN_ID:
         return
 
-    bot.answer_callback_query(call.id, "ተስተካክሏል!")
+    bot.answer_callback_query(call.id, "Done!")
     action, customer_id = call.data.split('_')
     customer_id = int(customer_id)
     order = user_orders.get(customer_id)
@@ -550,10 +655,9 @@ def handle_admin_action(call):
         bot.send_message(customer_id, get_text(customer_id, "ad_prompt"))
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🟢 [APPROVED]")
     else:
-        bot.send_message(customer_id, "❌ ክፍያዎ ውድቅ ተደርጓል። እባክዎ አስተዳዳሪውን ያነጋግሩ።")
+        bot.send_message(customer_id, "❌ Payment rejected. Contact admin.")
         bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id, caption=call.message.caption + "\n\n🔴 [REJECTED]")
 
-# ----------------- 5. አጠቃላይ የጽሑፍ እና የ AI መልስ መስጫ -----------------
 @bot.message_handler(func=lambda message: True, content_types=['text'])
 def handle_text_messages(message):
     user_id = message.chat.id
@@ -561,7 +665,6 @@ def handle_text_messages(message):
     if message.text.startswith('/'):
         return
 
-    # ተጠቃሚው ክፍያው ጸድቆለት ማስታወቂያ ለመለጠፍ የላከው ጽሑፍ ከሆነ
     if user_id in approved_users:
         order_info = approved_users.pop(user_id)
         target_channel = extract_channel_handle(order_info['channel_link'])
@@ -575,7 +678,6 @@ def handle_text_messages(message):
             bot.reply_to(message, "Ad received! It will be posted by the admin.")
         return
 
-    # በቀጥታ የላከው ጽሑፍ ከሆነ AI ይመልስለታል
     bot.send_chat_action(user_id, 'typing')
     ai_reply = generate_ai_response(user_id, message.text)
     bot.reply_to(message, ai_reply)
