@@ -8,24 +8,24 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
     body { background-color: #f4f6f8; color: #222; padding-bottom: 70px; }
 
-    /* Header & Top Bar */
+    /* Top Bar & Header */
     header { background: #fff; border-bottom: 1px solid #e1e4e8; padding: 12px 16px; position: sticky; top: 0; z-index: 100; }
     .top-bar { display: flex; justify-content: space-between; align-items: center; max-width: 1000px; margin: auto; }
     .logo { font-size: 20px; font-weight: 800; color: #0088cc; text-decoration: none; }
     
-    /* Language Selector */
-    .lang-select { padding: 6px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600; background: #fff; outline: none; }
+    /* 15 Language Dropdown */
+    .lang-select { padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 600; background: #fff; outline: none; cursor: pointer; }
 
-    /* Catalog Container */
+    /* Container */
     .container { max-width: 800px; margin: 20px auto; padding: 0 16px; }
     .page-title { font-size: 24px; font-weight: 800; margin-bottom: 15px; color: #1e293b; }
 
-    /* Filter & Search Bar */
+    /* Search Bar */
     .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
     .search-input { flex: 1; padding: 12px 16px; border-radius: 10px; border: 1px solid #cbd5e1; font-size: 15px; outline: none; }
     .search-input:focus { border-color: #0088cc; }
 
-    /* Channel Cards (Telega.io Style) */
+    /* Cards */
     .channel-card { background: #fff; border-radius: 16px; border: 1px solid #e2e8f0; padding: 18px; margin-bottom: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
     .card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
     .channel-icon { width: 50px; height: 50px; border-radius: 50%; background: #0088cc; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 20px; }
@@ -41,7 +41,7 @@
     .buy-btn { background: #16a34a; color: white; padding: 10px 18px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; border: none; cursor: pointer; transition: 0.2s; }
     .buy-btn:hover { background: #15803d; }
 
-    /* Floating AI Chat Widget */
+    /* Floating AI Chat */
     .ai-fab { position: fixed; bottom: 25px; right: 20px; width: 56px; height: 56px; border-radius: 50%; background: #2563eb; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 26px; cursor: pointer; box-shadow: 0 4px 15px rgba(37,99,235,0.4); z-index: 999; }
     .chat-modal { display: none; position: fixed; bottom: 90px; right: 20px; width: 340px; height: 460px; background: #fff; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); flex-direction: column; overflow: hidden; z-index: 1000; border: 1px solid #e2e8f0; }
     .chat-header { background: #2563eb; color: #fff; padding: 12px 16px; font-weight: 700; display: flex; justify-content: space-between; align-items: center; }
@@ -57,15 +57,25 @@
 </head>
 <body>
 
-  <!-- Top Header -->
   <header>
     <div class="top-bar">
       <a href="/" class="logo">⚡ EthioAd.io</a>
       <select id="langSwitcher" class="lang-select" onchange="switchLanguage()">
         <option value="am">🇪🇹 አማርኛ</option>
         <option value="en">🇬🇧 English</option>
-        <option value="fr">🇫🇷 Français</option>
         <option value="ar">🇸🇦 العربية</option>
+        <option value="fr">🇫🇷 Français</option>
+        <option value="es">🇪🇸 Español</option>
+        <option value="ru">🇷🇺 Русский</option>
+        <option value="pt">🇵🇹 Português</option>
+        <option value="zh">🇨🇳 中文</option>
+        <option value="hi">🇮🇳 हिन्दी</option>
+        <option value="de">🇩🇪 Deutsch</option>
+        <option value="tr">🇹🇷 Türkçe</option>
+        <option value="it">🇮🇹 Italiano</option>
+        <option value="ja">🇯🇵 日本語</option>
+        <option value="ko">🇰🇷 한국어</option>
+        <option value="sw">🇰🇪 Kiswahili</option>
       </select>
     </div>
   </header>
@@ -73,21 +83,18 @@
   <div class="container">
     <h1 class="page-title" id="txtTitle">የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)</h1>
     
-    <!-- Search / Filter -->
     <div class="search-box">
       <input type="text" id="searchInput" class="search-input" placeholder="ቻናል ይፈልጉ (Search channels...)" onkeyup="filterChannels()" />
     </div>
 
-    <!-- Channels Container -->
     <div id="channelsContainer">
       <p style="text-align: center; color: #64748b;">ቻናሎች በመጫን ላይ ናቸው...</p>
     </div>
   </div>
 
-  <!-- Floating AI Assistant Button -->
+  <!-- Floating AI Assistant -->
   <div class="ai-fab" onclick="toggleChat()" title="AI Assistant">💬</div>
 
-  <!-- AI Chat Window -->
   <div class="chat-modal" id="chatModal">
     <div class="chat-header">
       <span>🤖 Gemini AI Assistant</span>
@@ -105,44 +112,23 @@
   <script>
     let allChannels = [];
 
-    // ቋንቋ መቀያየሪያ
+    // 15 Languages Dictionary
     const translations = {
-      am: {
-        title: "የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)",
-        searchPlaceholder: "ቻናል ይፈልጉ (Search channels...)",
-        views: "እይታ (Views)",
-        priceFrom: "ዋጋ ከመነሻው፦",
-        buy: "ማስታወቂያ ይግዙ ➔",
-        aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ማስታወቂያ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።",
-        inputPlaceholder: "ጥያቄዎን ይጻፉ..."
-      },
-      en: {
-        title: "Telegram Channels Catalog",
-        searchPlaceholder: "Search channels...",
-        views: "Views",
-        priceFrom: "Starting at:",
-        buy: "Buy Ad ➔",
-        aiWelcome: "Hello! Ask me any question regarding channels or buying ads.",
-        inputPlaceholder: "Type your question..."
-      },
-      fr: {
-        title: "Catalogue des chaînes Telegram",
-        searchPlaceholder: "Rechercher des chaînes...",
-        views: "Vues",
-        priceFrom: "À partir de:",
-        buy: "Acheter pub ➔",
-        aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.",
-        inputPlaceholder: "Écrivez votre message..."
-      },
-      ar: {
-        title: "دليل قنوات التيليجرام",
-        searchPlaceholder: "ابحث عن القنوات...",
-        views: "المشاهدات",
-        priceFrom: "يبدأ من:",
-        buy: "شراء إعلان ➔",
-        aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.",
-        inputPlaceholder: "اكتب سؤالك..."
-      }
+      am: { title: "የቴሌግራም ቻናሎች ዝርዝር (Channels Catalog)", searchPlaceholder: "ቻናል ይፈልጉ (Search channels...)", views: "እይታ (Views)", priceFrom: "ዋጋ ከመነሻው፦", buy: "ማስታወቂያ ይግዙ ➔", aiWelcome: "ሰላም! ስለ ቻናሎች ወይም ማስታወቂያ አሰራር ማንኛውንም ጥያቄ ይጠይቁኝ።", inputPlaceholder: "ጥያቄዎን ይጻፉ..." },
+      en: { title: "Telegram Channels Catalog", searchPlaceholder: "Search channels...", views: "Views", priceFrom: "Starting at:", buy: "Buy Ad ➔", aiWelcome: "Hello! Ask me any question regarding channels or buying ads.", inputPlaceholder: "Type your question..." },
+      ar: { title: "دليل قنوات التيليجرام", searchPlaceholder: "ابحث عن القنوات...", views: "المشاهدات", priceFrom: "يبدأ من:", buy: "شراء إعلان ➔", aiWelcome: "مرحباً! اسأل المساعد الذكي عن أي استفسار يخص الإعلانات.", inputPlaceholder: "اكتب سؤالك..." },
+      fr: { title: "Catalogue des chaînes Telegram", searchPlaceholder: "Rechercher des chaînes...", views: "Vues", priceFrom: "À partir de:", buy: "Acheter pub ➔", aiWelcome: "Bonjour! Posez vos questions sur la publicité et les chaînes.", inputPlaceholder: "Écrivez votre message..." },
+      es: { title: "Catálogo de Canales de Telegram", searchPlaceholder: "Buscar canales...", views: "Vistas", priceFrom: "Desde:", buy: "Comprar Anuncio ➔", aiWelcome: "¡Hola! Pregúntame lo que sea sobre canales o compra de anuncios.", inputPlaceholder: "Escribe tu pregunta..." },
+      ru: { title: "Каталог Telegram-каналов", searchPlaceholder: "Поиск каналов...", views: "Просмотры", priceFrom: "От:", buy: "Купить рекламу ➔", aiWelcome: "Здравствуйте! Задайте вопрос об авторах, каналах или рекламе.", inputPlaceholder: "Введите ваш вопрос..." },
+      pt: { title: "Catálogo de Canais do Telegram", searchPlaceholder: "Pesquisar canais...", views: "Visualizações", priceFrom: "A partir de:", buy: "Comprar Anúncio ➔", aiWelcome: "Olá! Pergunte qualquer dúvida sobre os canais ou anúncios.", inputPlaceholder: "Digite sua pergunta..." },
+      zh: { title: "Telegram 频道目录", searchPlaceholder: "搜索频道...", views: "浏览量", priceFrom: "起价：", buy: "购买广告 ➔", aiWelcome: "您好！有关频道或投放广告的任何问题，随时向我提问。", inputPlaceholder: "输入您的问题..." },
+      hi: { title: "टेलीग्राम चैनल कैटलॉग", searchPlaceholder: "चैनल खोजें...", views: "देखे गए", priceFrom: "प्रारंभिक मूल्य:", buy: "विज्ञापन खरीदें ➔", aiWelcome: "नमस्ते! चैनलों या विज्ञापन खरीदने के बारे में कोई भी प्रश्न पूछें।", inputPlaceholder: "अपना प्रश्न लिखें..." },
+      de: { title: "Telegram-Kanal-Katalog", searchPlaceholder: "Kanäle durchsuchen...", views: "Aufrufe", priceFrom: "Ab:", buy: "Werbung kaufen ➔", aiWelcome: "Hallo! Fragen Sie unseren KI-Assistenten nach Kanälen oder Werbung.", inputPlaceholder: "Geben Sie Ihre Frage ein..." },
+      tr: { title: "Telegram Kanal Kataloğu", searchPlaceholder: "Kanal ara...", views: "Görüntüleme", priceFrom: "Başlangıç:", buy: "Reklam Satın Al ➔", aiWelcome: "Merhaba! Kanallar veya reklam satın alma ile ilgili sorularınızı sorun.", inputPlaceholder: "Sorunuzu yazın..." },
+      it: { title: "Catalogo Canali Telegram", searchPlaceholder: "Cerca canali...", views: "Visualizzazioni", priceFrom: "A partire da:", buy: "Acquista annuncio ➔", aiWelcome: "Ciao! Chiedimi qualsiasi cosa sui canali o sull'acquisto di annunci.", inputPlaceholder: "Scrivi la tua domanda..." },
+      ja: { title: "Telegram チャンネルカタログ", searchPlaceholder: "チャンネルを検索...", views: "閲覧数", priceFrom: "価格：", buy: "広告を購入 ➔", aiWelcome: "こんにちは！チャンネルや広告購入について何でもお尋ነください。", inputPlaceholder: "質問を入力..." },
+      ko: { title: "텔레그램 채널 카탈로그", searchPlaceholder: "채널 검색...", views: "조회수", priceFrom: "시작 가격:", buy: "광고 구매 ➔", aiWelcome: "안녕하세요! 채널 등록이나 광고 구매에 관해 질문해 주세요.", inputPlaceholder: "질문을 입력하세요..." },
+      sw: { title: "Orodha ya Idhaa za Telegram", searchPlaceholder: "Tafuta idhaa...", views: "Watazamaji", priceFrom: "Kuanzia:", buy: "Nunua Tangazo ➔", aiWelcome: "Jambo! Uliza swali lolote kuhusu idhaa au matangazo.", inputPlaceholder: "Andika swali lako..." }
     };
 
     function switchLanguage() {
@@ -155,7 +141,6 @@
       renderChannels(allChannels);
     }
 
-    // ዳታቤዝ ውስጥ ያሉ ቻናሎችን መጫን
     async function loadChannels() {
       try {
         const res = await fetch('/api/channels');
@@ -212,7 +197,6 @@
       renderChannels(filtered);
     }
 
-    // AI Chat Widget ተግባራት
     function toggleChat() {
       const modal = document.getElementById('chatModal');
       modal.style.display = (modal.style.display === 'flex') ? 'none' : 'flex';
