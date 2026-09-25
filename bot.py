@@ -251,7 +251,7 @@ def verify_otp():
 
     return jsonify({'status': 'error', 'message': 'Wrong OTP'}), 400
 
-# OFFICIAL GEMINI 3.8 FLASH ONLY (USES INTERACTIONS API)
+# OFFICIAL GEMINI 3.8 FLASH ONLY (WITH 429 RATE LIMIT CATCH)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
@@ -268,19 +268,29 @@ def call_gemini_models(system_prompt, question_text):
             )
             if hasattr(interaction, 'output_text') and interaction.output_text:
                 return interaction.output_text
-        except Exception:
-            pass
+        except Exception as e_interact:
+            err_str = str(e_interact)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                return "⚠️ በአሁኑ ሰዓት ጥያቄዎች በዝተዋል። እባክዎ ከ 1 ደቂቃ በኋላ እንደገና ይሞክሩ።"
 
         # 2. Standard Models API with gemini-3.8-flash
-        res = ai_client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=f"{system_prompt}\n\nUser Question: {question_text}"
-        )
-        if res and res.text:
-            return res.text
+        try:
+            res = ai_client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=f"{system_prompt}\n\nUser Question: {question_text}"
+            )
+            if res and res.text:
+                return res.text
+        except Exception as e_models:
+            err_str = str(e_models)
+            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+                return "⚠️ በአሁኑ ሰዓት ጥያቄዎች በዝተዋል። እባክዎ ከ 1 ደቂቃ በኋላ እንደገና ይሞክሩ።"
 
     except Exception as e:
-        return f"AI Error: {str(e)}"
+        err_msg = str(e)
+        if "429" in err_msg or "RESOURCE_EXHAUSTED" in err_msg:
+            return "⚠️ በአሁኑ ሰዓት ጥያቄዎች በዝተዋል። እባክዎ ከ 1 ደቂቃ በኋላ እንደገና ይሞክሩ።"
+        return f"AI Error: {err_msg}"
 
     return "AI Error: Could not generate response."
 
