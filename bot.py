@@ -251,6 +251,7 @@ def verify_otp():
 
     return jsonify({'status': 'error', 'message': 'Wrong OTP'}), 400
 
+# OFFICIAL GEMINI 3.8 FLASH ONLY (USES INTERACTIONS API)
 def call_gemini_models(system_prompt, question_text):
     key = os.getenv("GEMINI_API_KEY")
     if not key:
@@ -259,6 +260,7 @@ def call_gemini_models(system_prompt, question_text):
     try:
         ai_client = genai.Client(api_key=key.strip())
         
+        # 1. Interactions API with gemini-3.8-flash
         try:
             interaction = ai_client.interactions.create(
                 model="gemini-3.8-flash",
@@ -269,18 +271,9 @@ def call_gemini_models(system_prompt, question_text):
         except Exception:
             pass
 
-        try:
-            res = ai_client.models.generate_content(
-                model="gemini-3.8-flash",
-                contents=f"{system_prompt}\n\nUser Question: {question_text}"
-            )
-            if res and res.text:
-                return res.text
-        except Exception:
-            pass
-
+        # 2. Standard Models API with gemini-3.8-flash
         res = ai_client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             contents=f"{system_prompt}\n\nUser Question: {question_text}"
         )
         if res and res.text:
@@ -297,10 +290,9 @@ def api_ask_ai():
     query = data.get('query', '')
     lang = data.get('lang', 'am')
 
-    # እዚህ ላይ ስሙ ethio-ad-bot እንዲሆን ተደርጓል
     system_prompt = (
-        f"You are the official smart AI assistant for ethio-ad-bot running on Gemini 3.8. "
-        f"Introduce yourself as 'ethio-ad-bot AI Assistant' and never mention 'Ads Galaxy'. "
+        f"You are the official smart AI assistant for ethio-ad-bot running on Gemini 3.8 Flash. "
+        f"Introduce yourself as 'ethio-ad-bot AI Assistant'. "
         f"You must strictly reply in this language: {lang}. "
         f"Answer clearly and concisely about Telegram channels, ad booking, and monetization."
     )
@@ -357,7 +349,7 @@ def set_lang_handler(call):
 
 def generate_ai_response(user_id, question_text):
     current_l = user_lang.get(user_id, "am")
-    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.8 for ethio-ad-bot. Respond concisely in: {current_l}."
+    system_prompt = f"You are the official smart AI assistant powered by Gemini 3.8 Flash for ethio-ad-bot. Respond concisely in: {current_l}."
     return call_gemini_models(system_prompt, question_text)
 
 @bot.message_handler(commands=['ask'])
