@@ -176,13 +176,13 @@ def api_add_channel():
     conn.close()
 
     try:
-        bot.send_message(ADMIN_ID, f"📢 *New Channel Added!*\nName: {ch_name}\nLink: {ch_link}\nPrice: {final_price} ETB", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, f"📢 New Channel Added!\nName: {ch_name}\nLink: {ch_link}\nPrice: {final_price} ETB")
     except:
         pass
 
     return jsonify({'status': 'ok'})
 
-# ከድረ-ገጽ የመጣን ክፍያ ከአዝራሮች (Approve/Reject Buttons) ጋር ለአድሚን መላኪያ
+# ከድረ-ገጽ የመጣን ክፍያ ከአዝራሮች ጋር ለአድሚን መላኪያ
 @app.route('/api/submit_payment', methods=['POST'])
 def api_submit_payment():
     data = request.get_json() or {}
@@ -207,13 +207,13 @@ def api_submit_payment():
     loc_label = "🇪🇹 ከኢትዮጵያ (Local)" if loc == 'local' else "🌍 ከውጭ ሀገር (Abroad)"
 
     admin_msg = (
-        f"💳 *New Ad Order Received!* (Order #{order_id})\n\n"
+        f"💳 New Ad Order Received! (Order #{order_id})\n\n"
         f"📍 Location: {loc_label}\n"
         f"📢 Channel: {ch_name} ({ch_link})\n"
         f"⏳ Duration: {duration}\n"
-        f"💰 Total Amount: *{total}*\n"
-        f"🧾 Reference / TxID:\n`{tx_ref}`\n\n"
-        f"📝 *Ad Content:*\n{ad_content}"
+        f"💰 Total Amount: {total}\n"
+        f"🧾 Reference / TxID:\n{tx_ref}\n\n"
+        f"📝 Ad Content:\n{ad_content}"
     )
 
     markup = InlineKeyboardMarkup()
@@ -223,13 +223,13 @@ def api_submit_payment():
     )
 
     try:
-        bot.send_message(ADMIN_ID, admin_msg, reply_markup=markup, parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, admin_msg, reply_markup=markup)
     except Exception as e:
         pass
 
     return jsonify({'status': 'ok'})
 
-# አድሚኑ Approve ሲጫን ቻናሉ ላይ በቀጥታ የሚለጥፍ ተግባር
+# አድሚኑ Approve ሲጫን Parse Error ሳያመጣ በቀጥታ ቻናሉ ላይ የሚለጥፍ ተግባር
 @bot.callback_query_handler(func=lambda call: call.data.startswith(('web_app_', 'web_rej_')))
 def handle_web_order_approval(call):
     if call.from_user.id != ADMIN_ID:
@@ -250,30 +250,23 @@ def handle_web_order_approval(call):
         target_channel = extract_channel_handle(order['channel_link'])
         ad_text = order['ad_content']
 
+        # Parse mode ሳንጠቀም ተራ ጽሑፍ አድርጎ መለጠፍ (400 Bad Request እንዳይመጣ ያደርጋል)
         try:
             bot.send_message(target_channel, ad_text)
             conn.execute("UPDATE orders SET status = 'approved' WHERE id = ?", (order_id,))
             conn.commit()
-            bot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text=call.message.text + f"\n\n🟢 *[APPROVED & POSTED TO {target_channel}]*",
-                parse_mode="Markdown"
-            )
+            bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None)
+            bot.send_message(ADMIN_ID, f"🟢 ማስታወቂያው በተሳካ ሁኔታ በ {target_channel} ላይ ተለጥፏል!")
         except Exception as e:
             bot.send_message(
                 ADMIN_ID,
-                f"⚠️ ቦቱ በ {target_channel} ላይ መለጠፍ አልቻለም። ቦቱን በቻናሉ ላይ **Admin (Post Messages ፍቃድ ያለው)** ማድረጎን ያረጋግጡ። ስህተት፦ {str(e)}"
+                f"⚠️ ቦቱ በ {target_channel} ላይ መለጠፍ አልቻለም። ቦቱን በቻናሉ ላይ Admin (Post Messages ፍቃድ ያለው) ማድረጎን ያረጋግጡ። ስህተት፦ {str(e)}"
             )
     else:
         conn.execute("UPDATE orders SET status = 'rejected' WHERE id = ?", (order_id,))
         conn.commit()
-        bot.edit_message_text(
-            chat_id=call.message.chat.id,
-            message_id=call.message.message_id,
-            text=call.message.text + "\n\n🔴 *[REJECTED]*",
-            parse_mode="Markdown"
-        )
+        bot.edit_message_reply_markup(chat_id=call.message.chat.id, message_id=call.message.message_id, reply_markup=None)
+        bot.send_message(ADMIN_ID, f"🔴 ማስታወቂያው (Order #{order_id}) ውድቅ ተደርጓል።")
 
     conn.close()
 
@@ -315,15 +308,15 @@ def api_request_withdraw():
     conn.close()
 
     admin_msg = (
-        f"⚡ *Auto-Withdrawal Executed!*\n\n"
-        f"👤 User: `{contact}`\n"
-        f"💵 Amount: *${amount} USD*\n"
-        f"🏦 Method: *{method.upper()}*\n"
-        f"📍 Account / Wallet: `{account}`\n"
-        f"💳 Remaining Balance: *${new_bal:.2f} USD*"
+        f"⚡ Auto-Withdrawal Executed!\n\n"
+        f"👤 User: {contact}\n"
+        f"💵 Amount: ${amount} USD\n"
+        f"🏦 Method: {method.upper()}\n"
+        f"📍 Account / Wallet: {account}\n"
+        f"💳 Remaining Balance: ${new_bal:.2f} USD"
     )
     try:
-        bot.send_message(ADMIN_ID, admin_msg, parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, admin_msg)
     except Exception:
         pass
 
@@ -355,7 +348,7 @@ def send_otp():
             pass
 
     try:
-        bot.send_message(ADMIN_ID, f"🔐 *Web Verification Code*\n\nTarget: `{contact}`\nCountry: `{country_code}`\n5-Digit Code: `{otp_code}`", parse_mode="Markdown")
+        bot.send_message(ADMIN_ID, f"🔐 Web Verification Code\n\nTarget: {contact}\nCountry: {country_code}\n5-Digit Code: {otp_code}")
     except:
         pass
 
@@ -738,13 +731,13 @@ def handle_photo(message):
     )
 
     admin_caption = (
-        f"📩 *Payment Receipt!*\n\n"
-        f"User: `{user_id}`\n"
+        f"📩 Payment Receipt!\n\n"
+        f"User: {user_id}\n"
         f"Channel: {order['channel_name']}\n"
         f"Duration: {order['duration']}\n"
         f"Price: {order['final_price']} ETB"
     )
-    bot.send_photo(ADMIN_ID, photo_id, caption=admin_caption, reply_markup=admin_markup, parse_mode="Markdown")
+    bot.send_photo(ADMIN_ID, photo_id, caption=admin_caption, reply_markup=admin_markup)
     bot.reply_to(message, "✅ Receipt received! Waiting for admin approval.")
 
 @bot.callback_query_handler(func=lambda call: call.data.startswith(('app_', 'rej_')))
